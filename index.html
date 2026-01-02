@@ -207,10 +207,36 @@
     }
     /* Anchor offset for sticky nav */
     .anchor{scroll-margin-top: 86px;}
+    .img-box {
+  position: relative;
+  width: 300px;
+}
+
+.img-box img {
+  width: 100%;
+  display: block;
+}
+
+.overlay-text {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: 0.3s;
+}
   </style>
 </head>
 <body>
- <img src="https://www.10wallpaper.com/wallpaper/1366x768/2404/Purple_Bay_Area_Sunset_San_Francisco_CA_USA_5K_1366x768.jpg" style="width:100%; height:auto;" >
+  <div class="img-box">
+  <img src="https://www.10wallpaper.com/wallpaper/1366x768/2404/Purple_Bay_Area_Sunset_San_Francisco_CA_USA_5K_1366x768.jpg" style="width:100%; height:auto;">
+  <div class="overlay-text">這是浮文字</div>
+</div>
+
   <div class="topbar">
     <div class="container nav">
       <a class="brand" href="#top">
@@ -555,6 +581,7 @@ Sent from: twscreen.com one-page landing`
   </script>
 </body>
 </html>
+
 
 
 
