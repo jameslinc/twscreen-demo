@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Taiwan Screen Optronics | AUO LCD Panels & Display Solutions</title>
+  <meta name="description" content="twscreen.com - AUO LCD panels, touch solutions, industrial/medical/rugged displays. Quick RFQ and global support." />
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#101a33;
+      --text:#eaf0ff;
+      --muted:#b8c4e6;
+      --line:rgba(255,255,255,.12);
+      --accent:#66d9ff;
+      --accent2:#7cffb2;
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --radius:18px;
+      --max: 1120px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:radial-gradient(1000px 600px at 20% 0%, #162651 0%, rgba(22,38,81,0) 60%),
+                      radial-gradient(900px 500px at 85% 20%, #143a2e 0%, rgba(20,58,46,0) 55%),
+                      var(--bg);
+              color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", Arial;}
+    a{color:inherit;text-decoration:none}
+    .container{width:min(var(--max), calc(100% - 40px)); margin:0 auto;}
+    /* Top bar */
+    .topbar{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(12px);
+      background: rgba(11,18,32,.68);
+      border-bottom:1px solid var(--line);
+    }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 0;
+      gap:16px;
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px;}
+    .logo{
+      width:34px; height:34px; border-radius:10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 30px rgba(102,217,255,.18);
+    }
+    .menu{display:flex; gap:18px; align-items:center; flex-wrap:wrap;}
+    .menu a{color:var(--muted); font-size:14px; padding:8px 10px; border-radius:12px;}
+    .menu a:hover{background:rgba(255,255,255,.06); color:var(--text);}
+    .cta{
+      display:flex; gap:10px; align-items:center;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px; border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text); font-weight:650; font-size:14px;
+      transition:.15s transform ease, .15s background ease;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .btn:hover{transform: translateY(-1px); background:rgba(255,255,255,.08);}
+    .btn.primary{
+      border:none;
+      background: linear-gradient(135deg, rgba(102,217,255,.95), rgba(124,255,178,.9));
+      color:#05101b;
+      box-shadow: 0 18px 60px rgba(102,217,255,.18);
+    }
+    .btn.primary:hover{filter:saturate(1.05)}
+    /* Hero */
+    .hero{
+      padding:58px 0 26px;
+    }
+    .heroGrid{
+      display:grid; grid-template-columns: 1.15fr .85fr; gap:26px; align-items:stretch;
+    }
+    .kicker{
+      display:inline-flex; gap:10px; align-items:center;
+      padding:8px 12px; border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color:var(--muted); font-size:13px;
+    }
+    .dot{width:9px;height:9px;border-radius:99px;background:var(--accent); box-shadow:0 0 0 6px rgba(102,217,255,.12);}
+    h1{margin:14px 0 10px; font-size:44px; line-height:1.08;}
+    .sub{color:var(--muted); font-size:16px; line-height:1.7; margin:0 0 18px;}
+    .heroActions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
+    .miniRow{display:flex; gap:14px; flex-wrap:wrap; margin-top:18px; color:var(--muted); font-size:13px;}
+    .pill{padding:8px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.03);}
+    .heroCard{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+      min-height: 320px;
+    }
+    .heroCard::before{
+      content:"";
+      position:absolute; inset:-120px -160px auto auto;
+      width:360px;height:360px;border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, rgba(102,217,255,.35), rgba(102,217,255,0) 60%);
+      filter: blur(2px);
+    }
+    .heroCard .img{
+      height: 210px;
+      background:
+        linear-gradient(180deg, rgba(11,18,32,0) 0%, rgba(11,18,32,.88) 100%),
+        url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=70");
+      background-size:cover; background-position:center;
+    }
+    .heroCard .pad{padding:16px 16px 18px; position:relative;}
+    .statGrid{display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:10px;}
+    .stat{
+      border:1px solid var(--line); border-radius:16px; padding:10px 10px;
+      background:rgba(255,255,255,.03);
+    }
+    .stat b{display:block; font-size:16px;}
+    .stat span{color:var(--muted); font-size:12px;}
+    /* Sections */
+    section{padding:52px 0;}
+    .sectionTitle{display:flex; justify-content:space-between; gap:16px; align-items:flex-end; margin-bottom:18px;}
+    .sectionTitle h2{margin:0; font-size:26px;}
+    .sectionTitle p{margin:0;color:var(--muted); max-width:62ch; line-height:1.6;}
+    .grid3{display:grid; grid-template-columns: repeat(3,1fr); gap:14px;}
+    .grid2{display:grid; grid-template-columns: repeat(2,1fr); gap:14px;}
+    .card{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--radius);
+      padding:16px;
+    }
+    .card h3{margin:0 0 6px; font-size:16px;}
+    .card p{margin:0; color:var(--muted); line-height:1.65; font-size:14px;}
+    .icon{
+      width:38px;height:38px;border-radius:14px;
+      background: rgba(102,217,255,.12);
+      border:1px solid rgba(102,217,255,.25);
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:10px;
+      color:var(--accent);
+      font-weight:900;
+    }
+    /* Gallery */
+    .gallery{
+      display:grid; grid-template-columns: 1.3fr .7fr; gap:14px;
+    }
+    .gMain,.gSide{
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background:rgba(255,255,255,.02);
+    }
+    .gMain{min-height:320px; background:
+      linear-gradient(180deg, rgba(11,18,32,.15), rgba(11,18,32,.92)),
+      url("https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1600&q=70");
+      background-size:cover; background-position:center;
+      padding:18px;
+      display:flex; flex-direction:column; justify-content:flex-end;
+    }
+    .gMain b{font-size:18px;}
+    .gMain span{color:var(--muted); margin-top:6px; line-height:1.6;}
+    .gSide{display:grid; grid-template-rows: 1fr 1fr; gap:0;}
+    .gSide .tile{position:relative; min-height:155px;}
+    .gSide .tile:nth-child(1){
+      background: linear-gradient(180deg, rgba(11,18,32,.15), rgba(11,18,32,.92)),
+                  url("https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&w=1200&q=70");
+      background-size:cover; background-position:center;
+    }
+    .gSide .tile:nth-child(2){
+      background: linear-gradient(180deg, rgba(11,18,32,.15), rgba(11,18,32,.92)),
+                  url("https://images.unsplash.com/photo-1517059224940-d4af9eec41b7?auto=format&fit=crop&w=1200&q=70");
+      background-size:cover; background-position:center;
+    }
+    /* Form */
+    form{display:grid; gap:10px;}
+    label{font-size:13px; color:var(--muted);}
+    input, textarea, select{
+      width:100%;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      padding:12px 12px;
+      outline:none;
+      font-size:14px;
+    }
+    textarea{min-height:120px; resize:vertical;}
+    .row2{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    .hint{font-size:12px; color:var(--muted); line-height:1.5;}
+    .footer{
+      padding:26px 0 40px;
+      border-top:1px solid var(--line);
+      color:var(--muted);
+      font-size:13px;
+    }
+    .muted{color:var(--muted);}
+    /* Responsive */
+    @media (max-width: 920px){
+      .heroGrid{grid-template-columns:1fr; }
+      h1{font-size:36px;}
+      .grid3{grid-template-columns:1fr;}
+      .grid2{grid-template-columns:1fr;}
+      .gallery{grid-template-columns:1fr;}
+      .menu{display:none;}
+    }
+    /* Anchor offset for sticky nav */
+    .anchor{scroll-margin-top: 86px;}
+  </style>
+</head>
+<body>
+ <img src="https://www.10wallpaper.com/wallpaper/1366x768/2404/Purple_Bay_Area_Sunset_San_Francisco_CA_USA_5K_1366x768.jpg">
+  <div class="topbar">
+    <div class="container nav">
+      <a class="brand" href="#top">
+        <span class="logo" aria-hidden="true"></span>
+        <span>TWSCREEN</span>
+      </a>
+      <nav class="menu" aria-label="Primary">
+        <a href="#products">產品線</a>
+        <a href="#solutions">解決方案</a>
+        <a href="#why">為何選我們</a>
+        <a href="#cases">應用案例</a>
+        <a href="#rfq">快速詢價</a>
+        <a href="#contact">聯絡</a>
+      </nav>
+      <div class="cta">
+        <a class="btn" href="#rfq">Quick RFQ</a>
+        <a class="btn primary" href="#products">Browse Panels</a>
+      </div>
+    </div>
+  </div>
+
+  <main id="top" class="hero">
+
+    <div class="container heroGrid">
+      <div>
+        <div class="kicker"><span class="dot"></span> AUO LCD Panels・Touch / Rugged / Industrial Displays</div>
+        <h1>讓你的設備顯示更穩、更亮、更可靠</h1>
+        <p class="sub">
+          Taiwan Screen Optronics（twscreen.com）提供 AUO 等品牌液晶面板與整合顯示方案，
+          適用工業、醫療、交通、戶外與客製專案。從選型建議、打樣到量產交付，一頁就能快速了解我們。
+        </p>
+        <div class="heroActions">
+          <a class="btn primary" href="#rfq">立即詢價 / RFQ</a>
+          <a class="btn" href="#cases">看應用案例</a>
+          <a class="btn" href="#contact">取得規格建議</a>
+        </div>
+        <div class="miniRow">
+          <span class="pill">MOQ 彈性</span>
+          <span class="pill">全球出貨</span>
+          <span class="pill">支援客製：觸控 / OCA / 貼合 / 介面板</span>
+          <span class="pill">快速回覆：1–2 個工作天</span>
+        </div>
+      </div>
+
+      <aside class="heroCard" aria-label="Highlights">
+        <div class="img" role="img" aria-label="Display technology background image"></div>
+        <div class="pad">
+          <b>你可以用「需求」而不是型號開始</b>
+          <div class="muted" style="margin-top:6px; line-height:1.6;">
+            告訴我們尺寸、解析度、亮度、介面、工作溫度與應用場景，我們協助你對應合適面板與替代料。
+          </div>
+          <div class="statGrid">
+            <div class="stat"><b>7–32"</b><span>常見尺寸覆蓋</span></div>
+            <div class="stat"><b>LVDS/eDP</b><span>主流介面</span></div>
+            <div class="stat"><b>可整合</b><span>觸控/貼合/框體</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <section id="products" class="anchor">
+    <div class="container">
+      <div class="sectionTitle">
+        <div>
+          <h2>產品線（可按你們實際分類調整）</h2>
+          <p>用卡片呈現你們最常賣的面板與方案類別；每張卡可連到既有產品頁或 PDF。</p>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="card">
+          <div class="icon">P</div>
+          <h3>AUO LCD Panels</h3>
+          <p>工業級 / 長供貨週期 / 多尺寸多解析度。可加入「熱門型號」與替代料策略。</p>
+        </div>
+        <div class="card">
+          <div class="icon">T</div>
+          <h3>Touch Solutions</h3>
+          <p>PCAP / 電阻式 / OCA 貼合 / 蓋板客製。可放「抗干擾、手套、防水」等賣點。</p>
+        </div>
+        <div class="card">
+          <div class="icon">R</div>
+          <h3>Rugged / Outdoor</h3>
+          <p>高亮、寬溫、抗震，搭配光學貼合與防眩處理，適用戶外與車載/船舶。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="solutions" class="anchor">
+    <div class="container">
+      <div class="sectionTitle">
+        <div>
+          <h2>解決方案</h2>
+          <p>像 Wix 那種「服務區」：用 3–6 個短點，把你們的交付能力講清楚。</p>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="card">
+          <h3>選型建議（BOM / 替代料）</h3>
+          <p>依尺寸、解析度、亮度、介面、溫度與供貨風險，快速給建議清單。</p>
+        </div>
+        <div class="card">
+          <h3>整合：觸控 + 光學貼合</h3>
+          <p>支援 OCA/LOCA、蓋板與框體設計，降低反射、提升戶外可視性與可靠度。</p>
+        </div>
+        <div class="card">
+          <h3>小量打樣到量產交付</h3>
+          <p>打樣快、交期透明；可依專案提供包材、測試條件與出貨標準。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="why" class="anchor">
+    <div class="container">
+      <div class="sectionTitle">
+        <div>
+          <h2>為何選 TWSCREEN</h2>
+          <p>這一段對應 Wix 範本的「優勢/特色」區塊：專業、可信、可落地。</p>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>工程導向：先理解場景，再配對規格</h3>
+          <p>工業/醫療/戶外需求常見「亮度、溫度、干擾、壽命」等限制，我們用條件把風險先排除。</p>
+        </div>
+        <div class="card">
+          <h3>供應鏈彈性：替代料與交期策略</h3>
+          <p>針對缺料與停產風險，提供替代型號候選與規格差異表，讓你更容易過內部審查。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cases" class="anchor">
+    <div class="container">
+      <div class="sectionTitle">
+        <div>
+          <h2>應用案例 / 圖像牆</h2>
+          <p>像 Wix 的照片牆：放你們「工控、醫療、交通、戶外」場景照，信任感會上來。</p>
+        </div>
+      </div>
+
+      <div class="gallery">
+        <div class="gMain">
+          <b>Industrial / Medical / Transportation</b>
+          <span>把你們的案例照片或產品實拍換上來（建議 1600px 寬），並加上 1–2 句描述。</span>
+        </div>
+        <div class="gSide" aria-hidden="true">
+          <div class="tile"></div>
+          <div class="tile"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="rfq" class="anchor">
+    <div class="container">
+      <div class="sectionTitle">
+        <div>
+          <h2>快速詢價 / RFQ</h2>
+          <p>這段可取代 Wix 的「預約」：用表單收集規格，讓業務/工程回覆更快。</p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <form id="rfqForm">
+            <div class="row2">
+              <div>
+                <label>公司 / Company</label>
+                <input name="company" placeholder="Your company name" required>
+              </div>
+              <div>
+                <label>姓名 / Name</label>
+                <input name="name" placeholder="Your name" required>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>Email</label>
+                <input name="email" type="email" placeholder="name@company.com" required>
+              </div>
+              <div>
+                <label>需求數量 / Qty</label>
+                <input name="qty" placeholder="e.g., 10 / 100 / 1K" required>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>尺寸 / Size</label>
+                <input name="size" placeholder='e.g., 10.1", 15.6", 21.5"' />
+              </div>
+              <div>
+                <label>介面 / Interface</label>
+                <select name="interface">
+                  <option value="">Select…</option>
+                  <option>LVDS</option>
+                  <option>eDP</option>
+                  <option>RGB</option>
+                  <option>MIPI</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label>亮度 / Brightness</label>
+                <input name="brightness" placeholder="e.g., 250 / 500 / 1000 nits" />
+              </div>
+              <div>
+                <label>觸控 / Touch</label>
+                <select name="touch">
+                  <option value="">Select…</option>
+                  <option>None</option>
+                  <option>PCAP</option>
+                  <option>Resistive</option>
+                  <option>With Optical Bonding</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label>備註 / Message</label>
+              <textarea name="message" placeholder="Please describe application, resolution, temp range, target model (if any), etc."></textarea>
+            </div>
+
+            <button class="btn primary" type="submit">送出 RFQ（示範）</button>
+            <div class="hint">
+              ※ 目前是「前端示範」：點送出會產生 mailto 草稿。若你們有後端（PHP/Node/Google Form/CRM），我也可以幫你改成真正送出。
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>回覆時間與你會拿到的內容</h3>
+          <p class="muted" style="margin-top:8px;">
+            我們通常在 1–2 個工作天內回覆，並提供：<br>
+            • 建議型號/替代料清單<br>
+            • 主要規格差異整理（亮度/介面/外形/溫度/供貨）<br>
+            • 交期與報價條件（依數量與交付方式）<br><br>
+            也可直接寄信到：<b>sales@twscreen.com</b>（請換成你們實際信箱）
+          </p>
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="#contact">聯絡資訊</a>
+            <a class="btn" href="https://www.twscreen.com/" target="_blank" rel="noopener">回官網首頁</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="anchor">
+    <div class="container">
+      <div class="sectionTitle">
+        <div>
+          <h2>聯絡我們</h2>
+          <p>跟 Wix 一樣：表單 + 地圖 + 公司資訊。地圖可換成你們 Google Map iframe。</p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Company Info</h3>
+          <p class="muted" style="margin-top:8px; line-height:1.8;">
+            Taiwan Screen Optronics（TWSCREEN）<br>
+            Website: twscreen.com<br>
+            Email: sales@twscreen.com（請換成你們實際信箱）<br>
+            Tel: +886-xx-xxxx-xxxx（請換成你們實際電話）<br>
+            Address: Taiwan（請換成你們實際地址）<br>
+          </p>
+          <p class="hint" style="margin-top:12px;">
+            如果你給我「正式地址 / 電話 / 要放哪些社群連結」，我可以幫你把這段完全補齊。
+          </p>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div style="padding:16px;">
+            <h3 style="margin:0 0 10px;">Map</h3>
+            <p class="muted" style="margin:0;">把下面 iframe 換成你們的 Google Maps 嵌入碼即可。</p>
+          </div>
+          <div style="height:280px; border-top:1px solid var(--line); background:rgba(255,255,255,.02); display:flex; align-items:center; justify-content:center;">
+            <span class="muted">Google Map iframe goes here</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="container">
+          © <span id="year"></span> Taiwan Screen Optronics. All rights reserved. ·
+          <span class="muted">One-page template for twscreen.com</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Smooth scroll for in-page anchors
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        const id = a.getAttribute('href');
+        if(!id || id === "#") return;
+        const el = document.querySelector(id);
+        if(el){
+          e.preventDefault();
+          el.scrollIntoView({behavior:'smooth', block:'start'});
+          history.replaceState(null, '', id);
+        }
+      });
+    });
+
+    // Simple RFQ submit demo: compose a mailto
+    document.getElementById('rfqForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const data = new FormData(e.target);
+      const obj = Object.fromEntries(data.entries());
+      const subject = encodeURIComponent(`[RFQ] ${obj.company || ''} - ${obj.size || ''} ${obj.interface || ''}`.trim());
+      const body = encodeURIComponent(
+`Company: ${obj.company || ''}
+Name: ${obj.name || ''}
+Email: ${obj.email || ''}
+Qty: ${obj.qty || ''}
+Size: ${obj.size || ''}
+Interface: ${obj.interface || ''}
+Brightness: ${obj.brightness || ''}
+Touch: ${obj.touch || ''}
+
+Message:
+${obj.message || ''}
+
+Sent from: twscreen.com one-page landing`
+      );
+      // TODO: replace sales@twscreen.com with your real RFQ mailbox
+      window.location.href = `mailto:sales@twscreen.com?subject=${subject}&body=${body}`;
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
