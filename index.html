@@ -267,10 +267,10 @@ document.getElementById("btn").onclick = async () => {
     const r = await fetch(url.toString());
     const text = await r.text();
 
-    if (!r.ok) {
-      alert("HTTP " + r.status + "\n" + text);
-      return;
-    }
+   // if (!r.ok) {
+   //   alert("HTTP " + r.status + "\n" + text);
+   //   return;
+   // }
 
     // 盡量 parse JSON
     let j;
@@ -626,4 +626,5 @@ Wysłano ze strony: twscreen.com (one-page)`
   </script>
 </body>
 </html>
+
 
