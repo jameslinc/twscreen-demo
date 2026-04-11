@@ -543,20 +543,9 @@ document.getElementById("btn").onclick = async () => {
 
   
  <section id="rfq" class="anchor">    
- <div class="container">
-    <div class="sectionTitle">
-        <div>
-          <h2>Szybkie RFQ</h2>
-          <p>Zamiast “rezerwacji”: zbierz parametry w formularzu, a odpowiedź będzie dużo szybsza i trafniejsza.</p>
-        </div>
-      </div>
-     <div class="grid2">
-        <div class="card">
-          
 
    
-
-    <div style="max-width:520px; padding:12px; border:1px solid #ccc; border-radius:8px;">
+<div style="max-width:520px; padding:12px; border:1px solid #ccc; border-radius:8px;">
   <div style="margin:8px 0;">
     <label>Company</label><br>
     <input id="company" type="text" placeholder="e.g. tws" style="width:100%; padding:8px;">
@@ -577,69 +566,52 @@ document.getElementById("btn").onclick = async () => {
     <textarea id="remark" rows="4" placeholder="需求內容..." style="width:100%; padding:8px;"></textarea>
   </div>
 
-  <button id="btn" style="padding:10px 14px;">輸入入</button>
+  <button id="btn" style="padding:10px 14px;">輸入</button>
 </div>
- </div>
 
-       <script>
+<script>
 document.getElementById("btn").onclick = async () => {
   const comp = document.getElementById("company").value.trim();
   const cont = document.getElementById("contact").value.trim();
   const email = document.getElementById("email").value.trim();
   const remark = document.getElementById("remark").value.trim();
-  const msg = document.getElementById("msg");
 
-  function showMsg(text, ok = false) {
-    msg.style.display = "block";
-    msg.innerText = text;
-    msg.style.background = ok ? "#e8f5e9" : "#fdecea";
-    msg.style.color = ok ? "#1b5e20" : "#b71c1c";
-    msg.style.border = ok ? "1px solid #81c784" : "1px solid #ef9a9a";
-  }
-
+  // 基本檢查（可自行增減）
   if (!comp || !cont || !email) {
-    showMsg("Company / Contact / Email 為必填欄位");
+    alert("Company/Contact/Email 必填");
     return;
   }
 
-  const url = new URL("https://newzzz.jameslinc791.workers.dev/api/insert/");
+  const url = new URL("https://newzzz.jameslinc791.workers.dev/api/insert");
+
   url.searchParams.set("comp", comp);
   url.searchParams.set("cont", cont);
   url.searchParams.set("email", email);
   url.searchParams.set("remark", remark);
 
+  const finalUrl = url.toString();
+  alert("即將送出：\n" + finalUrl); 
+
   try {
-    showMsg("資料送出中，請稍候...");
-    
     const r = await fetch(url.toString());
     const text = await r.text();
 
     if (!r.ok) {
-      showMsg("HTTP " + r.status + "： " + text);
+      alert("HTTP " + r.status + "\n" + text);
       return;
     }
 
+    // 盡量 parse JSON
     let j;
-    try {
-      j = JSON.parse(text);
-    } catch {
-      j = { raw: text };
-    }
-
-    showMsg("送出成功", true);
-
-    document.getElementById("company").value = "";
-    document.getElementById("contact").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("remark").value = "";
-
-    console.log("Server response:", j);
-
+    try { j = JSON.parse(text); } catch { j = { raw: text }; }
+   // alert(JSON.stringify(j));
   } catch (e) {
-    showMsg("Fetch failed: " + e);
+   // alert("Fetch failed: " + e);
   }
 };
 </script>
+
+
 
   </section>
 
