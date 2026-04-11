@@ -577,16 +577,25 @@ document.getElementById("btn").onclick = async () => {
   <button id="btn" style="padding:10px 14px;">輸入入</button>
 </div>
  </div>
-<script>
+
+       <script>
 document.getElementById("btn").onclick = async () => {
   const comp = document.getElementById("company").value.trim();
   const cont = document.getElementById("contact").value.trim();
   const email = document.getElementById("email").value.trim();
   const remark = document.getElementById("remark").value.trim();
+  const msg = document.getElementById("msg");
 
-  // 基本檢查（可自行增減）
+  function showMsg(text, ok = false) {
+    msg.style.display = "block";
+    msg.innerText = text;
+    msg.style.background = ok ? "#e8f5e9" : "#fdecea";
+    msg.style.color = ok ? "#1b5e20" : "#b71c1c";
+    msg.style.border = ok ? "1px solid #81c784" : "1px solid #ef9a9a";
+  }
+
   if (!comp || !cont || !email) {
-    alert("Company/Contact/Email 必填");
+    showMsg("Company / Contact / Email 為必填欄位");
     return;
   }
 
@@ -596,7 +605,7 @@ document.getElementById("btn").onclick = async () => {
   url.searchParams.set("email", email);
   url.searchParams.set("remark", remark);
 
-   try {
+  try {
     showMsg("資料送出中，請稍候...");
     
     const r = await fetch(url.toString());
@@ -627,8 +636,8 @@ document.getElementById("btn").onclick = async () => {
     showMsg("Fetch failed: " + e);
   }
 };
-  
 </script>
+
   </section>
 
   <section id="contact" class="anchor">
