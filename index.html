@@ -596,21 +596,35 @@ document.getElementById("btn").onclick = async () => {
   url.searchParams.set("email", email);
   url.searchParams.set("remark", remark);
 
-  try {
+   try {
+    showMsg("資料送出中，請稍候...");
+    
     const r = await fetch(url.toString());
     const text = await r.text();
 
     if (!r.ok) {
-      alert("HTTP " + r.status + "\n" + text);
+      showMsg("HTTP " + r.status + "： " + text);
       return;
     }
 
-    // 盡量 parse JSON
     let j;
-    try { j = JSON.parse(text); } catch { j = { raw: text }; }
-   // alert(JSON.stringify(j));
+    try {
+      j = JSON.parse(text);
+    } catch {
+      j = { raw: text };
+    }
+
+    showMsg("送出成功", true);
+
+    document.getElementById("company").value = "";
+    document.getElementById("contact").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("remark").value = "";
+
+    console.log("Server response:", j);
+
   } catch (e) {
-    alert("Fetch failed: " + e);
+    showMsg("Fetch failed: " + e);
   }
 };
   
