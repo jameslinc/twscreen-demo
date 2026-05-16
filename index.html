@@ -3,9 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <meta name="description"
+    content="SEO關鍵字">
+ <meta name="keywords" content="KEYWORD關鍵字">
+
   <title>Taiwan Screen Optronics | Panele LCD AUO i rozwiązania wyświetlaczy</title>
-  <meta name="description" content="twscreen.com — panele LCD AUO, rozwiązania dotykowe, wyświetlacze przemysłowe/medyczne/wzmocnione. Szybka wycena (RFQ) i globalna wysyłka." />
-  <style>
+<style>
     :root{
       --bg:#0b1220;
       --card:#101a33;
@@ -37,15 +40,23 @@
       gap:16px;
     }
     .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px;}
-    .logo{
-      width:100px; height:100px; border-radius:100px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      background-image: url("https://media.istockphoto.com/id/1331491686/zh/%E5%90%91%E9%87%8F/element-design.jpg?s=612x612&w=0&k=20&c=ZjLRYp-N-pGVCs3j2NswBSdgZ0rXSGzVJgYoCir-Jdg=");
-      background-size: contain;  /* 等比例縮放 */
-      box-shadow: 0 10px 30px rgba(102,217,255,.18);
-    }
+ 
+.logo{
+  display:block;
+  width:100px;
+  height:100px;
+  border-radius:50%;
+
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+
+  overflow:hidden;
+  box-shadow:none;
+}
+
     .menu{display:flex; gap:18px; align-items:center; flex-wrap:wrap;}
-    .menu a{color:var(--muted); font-size:14px; padding:8px 10px; border-radius:12px;}
+    .menu a{color:var(--muted); font-size:18px; padding:8px 10px; border-radius:12px;}
     .menu a:hover{background:rgba(255,255,255,.06); color:var(--text);}
     .cta{display:flex; gap:10px; align-items:center;}
     .btn{
@@ -193,10 +204,11 @@
       .gallery{grid-template-columns:1fr;}
       .menu{display:none;}
     }
-    .anchor{scroll-margin-top: 86px;}
+    .anchor{scroll-margin-top: 220px;}
   .img-box {
   position: relative;
 }
+
 
 .badge {
   position: absolute;
@@ -208,101 +220,87 @@
   font-size: 14px;
 }
 
+
+.slider{
+  width:100%;
+  overflow:hidden;
+  background:#000;
+}
+
+.slider{
+  position:relative;
+  width:100%;
+  height:auto;
+  overflow:hidden;
+  background:#000;
+}
+
+.slide{
+  display:none;
+  width:100%;
+}
+
+.slide.active{
+  display:block;
+}
+
+.slide img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+.slide-txt{
+  position:absolute;
+
+  left:6%;
+  top:12%;
+
+  z-index:10;
+
+  color:#fff;
+
+  font-size:56px;
+  font-weight:900;
+
+  line-height:1.25;
+
+  max-width:40%;
+
+  white-space:pre-line;
+}
+#topbarBox{
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+}
+
+
   </style>
 </head>
 <body>
+ <div id="top"></div>
 
-<div class="img-box">
-
-  <img src="https://images.pexels.com/photos/3082341/pexels-photo-3082341.jpeg?_gl=1*11ls94c*_ga*MTUyODQ3ODI1OC4xNzY3Mzc0MTQz*_ga_8JE65Q40S6*czE3NjczNzQxNDIkbzEkZzEkdDE3NjczNzQ1ODUkajU5JGwwJGgw" style="width:100vw; height:auto;">
-  <span class="badge">台亞光電</span>
+<div id="topbarBox">
+  Loading topbar...
 </div>
+
+ 
 
 <!--
+<div class="img-box">
+  <a href="https://www.twscreen.com" target="_blank" rel="noopener">
+    <img src="https://jameslinc.github.io/twscreen-demo/Banner.jpg" alt="TWSCREEN Banner">
+  </a>
+  <span class="badge">台亞光電</span>
+</div>
+-->
 
-<div style="max-width:520px; padding:12px; border:1px solid #ccc; border-radius:8px;">
-  <div style="margin:8px 0;">
-    <label>Company</label><br>
-    <input id="company" type="text" placeholder="e.g. tws" style="width:100%; padding:8px;">
-  </div>
-
-  <div style="margin:8px 0;">
-    <label>Contact</label><br>
-    <input id="contact" type="text" placeholder="e.g. James" style="width:100%; padding:8px;">
-  </div>
-
-  <div style="margin:8px 0;">
-    <label>Email</label><br>
-    <input id="email" type="email" placeholder="e.g. jameslinc791@gmail.com" style="width:100%; padding:8px;">
-  </div>
-
-  <div style="margin:8px 0;">
-    <label>Remark</label><br>
-    <textarea id="remark" rows="4" placeholder="需求內容..." style="width:100%; padding:8px;"></textarea>
-  </div>
-
-  <button id="btn" style="padding:10px 14px;">輸入</button>
+<div class="slider" id="bannerSlider">
+  <div style="padding:20px;">Loading banners...</div>
 </div>
 
-<script>
-document.getElementById("btn").onclick = async () => {
-  const comp = document.getElementById("company").value.trim();
-  const cont = document.getElementById("contact").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const remark = document.getElementById("remark").value.trim();
 
-  // 基本檢查（可自行增減）
-  if (!comp || !cont || !email) {
-    alert("Company/Contact/Email 必填");
-    return;
-  }
-
-  const url = new URL("https://newzzz.jameslinc791.workers.dev/api/insert/");
-  url.searchParams.set("comp", comp);
-  url.searchParams.set("cont", cont);
-  url.searchParams.set("email", email);
-  url.searchParams.set("remark", remark);
-
-  try {
-    const r = await fetch(url.toString());
-    const text = await r.text();
-
-    if (!r.ok) {
-      alert("HTTP " + r.status + "\n" + text);
-      return;
-    }
-
-    // 盡量 parse JSON
-    let j;
-    try { j = JSON.parse(text); } catch { j = { raw: text }; }
-   // alert(JSON.stringify(j));
-  } catch (e) {
-    alert("Fetch failed: " + e);
-  }
-};
-  
-</script>
--->
-  <div class="topbar">
-    <div class="container nav">
-      <a class="brand" href="#top">
-        <span class="logo" aria-hidden="true"></span>
-        <span>TWSCREEN</span>
-      </a>
-      <nav class="menu" aria-label="Primary">
-        <a href="#products">Produkty</a>
-        <a href="#solutions">Rozwiązania</a>
-        <a href="#why">Dlaczego my</a>
-        <a href="#cases">Zastosowania</a>
-        <a href="#rfq">Szybkie RFQ</a>
-        <a href="#contact">Kontakt</a>
-      </nav>
-      <div class="cta">
-        <a class="btn" href="#rfq">Szybkie RFQ</a>
-        <a class="btn primary" href="#products">Przeglądaj panele</a>
-      </div>
-    </div>
-  </div>
 
   <main id="top" class="hero">
     <div class="container heroGrid">
@@ -441,8 +439,7 @@ document.getElementById("btn").onclick = async () => {
     </div>
   </section>
 
- 
-    <!--
+  <section id="rfq" class="anchor">
     <div class="container">
       <div class="sectionTitle">
         <div>
@@ -454,72 +451,49 @@ document.getElementById("btn").onclick = async () => {
       <div class="grid2">
         <div class="card">
           <form id="rfqForm">
-            <div class="row2">
-              <div>
-                <label>Firma</label>
-                <input name="company" placeholder="Nazwa firmy" required>
-              </div>
-              <div>
-                <label>Imię i nazwisko</label>
-                <input name="name" placeholder="Twoje imię i nazwisko" required>
-              </div>
-            </div>
 
-            <div class="row2">
-              <div>
-                <label>Email</label>
-                <input name="email" type="email" placeholder="name@company.com" required>
-              </div>
-              <div>
-                <label>Ilość (Qty)</label>
-                <input name="qty" placeholder="np. 10 / 100 / 1K" required>
-              </div>
-            </div>
+             <div style="max-width:520px; padding:12px; border:1px solid #ccc; border-radius:8px;">
+  <div style="margin:8px 0;">
+    <label>Company</label><br>
+    <input id="company" type="text" placeholder="e.g. ASUS" style="width:100%; padding:8px;">
+  </div>
 
-            <div class="row2">
-              <div>
-                <label>Rozmiar</label>
-                <input name="size" placeholder='np. 10.1", 15.6", 21.5"' />
-              </div>
-              <div>
-                <label>Interfejs</label>
-                <select name="interface">
-                  <option value="">Wybierz…</option>
-                  <option>LVDS</option>
-                  <option>eDP</option>
-                  <option>RGB</option>
-                  <option>MIPI</option>
-                  <option>Inny</option>
-                </select>
-              </div>
-            </div>
+  <div style="margin:8px 0;">
+    <label>Contact</label><br>
+    <input id="contact" type="text" placeholder="e.g. James" style="width:100%; padding:8px;">
+  </div>
 
-            <div class="row2">
-              <div>
-                <label>Jasność</label>
-                <input name="brightness" placeholder="np. 250 / 500 / 1000 nitów" />
-              </div>
-              <div>
-                <label>Dotyk</label>
-                <select name="touch">
-                  <option value="">Wybierz…</option>
-                  <option>Brak</option>
-                  <option>PCAP</option>
-                  <option>Rezystancyjny</option>
-                  <option>Z bondingiem optycznym</option>
-                </select>
-              </div>
-            </div>
+  <div style="margin:8px 0;">
+    <label>Email</label><br>
+    <input id="email" type="email" placeholder="e.g. test@test.com" style="width:100%; padding:8px;">
+  </div>
 
-            <div>
-              <label>Wiadomość</label>
-              <textarea name="message" placeholder="Opisz zastosowanie, rozdzielczość, zakres temperatur, docelowy model (jeśli znany), itd."></textarea>
-            </div>
+  <div style="margin:8px 0;">
+    <label>Remark</label><br>
+    <textarea id="remark" placeholder="Your message" style="width:100%; padding:8px; min-height:100px;"></textarea>
+  </div>
 
-            <button class="btn primary" type="submit">Wyślij RFQ (demo)</button>
-            <div class="hint">
-              Uwaga: to demo “frontend”. Po wysłaniu otworzy szkic email (mailto). Jeśli macie backend (PHP/Node/Google Form/CRM), mogę podpiąć prawdziwe wysyłanie.
-            </div>
+  <button type="button" onclick="sendData()" style="padding:10px 16px;">
+    Send
+  </button>
+
+  <div id="msg" style="margin-top:12px; color:green;"></div>
+
+</div>
+          
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
           </form>
         </div>
 
@@ -539,83 +513,11 @@ document.getElementById("btn").onclick = async () => {
         </div>
       </div>
     </div>
-    -->
-
-  
- <section id="rfq" class="anchor">    
-
-   
-<div style="max-width:520px; padding:12px; border:1px solid #ccc; border-radius:8px;">
-  <div style="margin:8px 0;">
-    <label>Company</label><br>
-    <input id="company" type="text" placeholder="e.g. tws" style="width:100%; padding:8px;">
-  </div>
-
-  <div style="margin:8px 0;">
-    <label>Contact</label><br>
-    <input id="contact" type="text" placeholder="e.g. James" style="width:100%; padding:8px;">
-  </div>
-
-  <div style="margin:8px 0;">
-    <label>Email</label><br>
-    <input id="email" type="email" placeholder="e.g. jameslinc791@gmail.com" style="width:100%; padding:8px;">
-  </div>
-
-  <div style="margin:8px 0;">
-    <label>Remark</label><br>
-    <textarea id="remark" rows="4" placeholder="需求內容..." style="width:100%; padding:8px;"></textarea>
-  </div>
-
-  <button id="btn" style="padding:10px 14px;">輸入</button>
-</div>
-
-<script>
-document.getElementById("btn").onclick = async () => {
-  const comp = document.getElementById("company").value.trim();
-  const cont = document.getElementById("contact").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const remark = document.getElementById("remark").value.trim();
-
-  // 基本檢查（可自行增減）
-  if (!comp || !cont || !email) {
-    alert("Company/Contact/Email 必填");
-    return;
-  }
-
-  const url = new URL("https://newzzz.jameslinc791.workers.dev/api/insert");
-
-  url.searchParams.set("comp", comp);
-  url.searchParams.set("cont", cont);
-  url.searchParams.set("email", email);
-  url.searchParams.set("remark", remark);
-
-  const finalUrl = url.toString();
-  alert("即將送出：\n" + finalUrl); 
-
-  try {
-    const r = await fetch(url.toString());
-    const text = await r.text();
-
-    if (!r.ok) {
-      alert("HTTP " + r.status + "\n" + text);
-      return;
-    }
-
-    // 盡量 parse JSON
-    let j;
-    try { j = JSON.parse(text); } catch { j = { raw: text }; }
-   // alert(JSON.stringify(j));
-  } catch (e) {
-   // alert("Fetch failed: " + e);
-  }
-};
-</script>
-
-
-
   </section>
 
-  <section id="contact" class="anchor">
+<div id="contact" style="position:relative; top:-220px;"></div>
+
+<section class="anchor">
     <div class="container">
       <div class="sectionTitle">
         <div>
@@ -626,14 +528,13 @@ document.getElementById("btn").onclick = async () => {
 
       <div class="grid2">
         <div class="card">
+
           <h3>Dane firmy</h3>
-          <p class="muted" style="margin-top:8px; line-height:1.8;">
-            Taiwan Screen Optronics (TWSCREEN)<br>
-            Website: twscreen.com<br>
-            Email: sales@twscreen.com (podmień na właściwy)<br>
-            Tel: +886-xx-xxxx-xxxx (podmień)<br>
-            Address: Taiwan (podmień)<br>
-          </p>
+
+            <p id="companyInfoBox" class="muted" style="margin-top:8px; line-height:1.8;">
+                Loading company info...
+            </p>
+
           <p class="hint" style="margin-top:12px;">
             Jeśli podasz adres/telefon i linki (LinkedIn itp.), wstawię je na gotowo.
           </p>
@@ -657,58 +558,477 @@ document.getElementById("btn").onclick = async () => {
         </div>
       </div>
     </div>
-      </div>
-   
   </section>
 
-  <script>
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener('click', (e)=>{
-        const id = a.getAttribute('href');
-        if(!id || id === "#") return;
-        const el = document.querySelector(id);
-        if(el){
-          e.preventDefault();
-          el.scrollIntoView({behavior:'smooth', block:'start'});
-          history.replaceState(null, '', id);
+<script>
+let currentWebId = 0;
+
+async function sendData() {
+  const company = document.getElementById("company").value.trim();
+  const contact = document.getElementById("contact").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const remark = document.getElementById("remark").value.trim();
+  const msg = document.getElementById("msg");
+
+  if (!company || !contact || !email) {
+    msg.style.color = "red";
+    msg.innerText = "Please fill in Company, Contact, and Email.";
+    return;
+  }
+
+  const apiUrl = "https://twscreen-demo-2-api.jameslinc791.workers.dev/insert";
+  const url =
+    apiUrl +
+    "?com=" + encodeURIComponent(company) +
+    "&ctt_person=" + encodeURIComponent(contact) +
+    "&em=" + encodeURIComponent(email) +
+    "&rem=" + encodeURIComponent(remark) +
+    "&web_id=" + encodeURIComponent(currentWebId);
+
+  msg.style.color = "black";
+  msg.innerText = "Sending...";
+
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+
+    if (res.ok && text.includes("INSERT OK")) {
+      msg.style.color = "green";
+      msg.innerText = "Sent successfully! web_id=" + currentWebId;
+
+      document.getElementById("company").value = "";
+      document.getElementById("contact").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("remark").value = "";
+    } else {
+      msg.style.color = "red";
+      msg.innerText = "Send failed: " + text;
+    }
+  } catch (err) {
+    msg.style.color = "red";
+    msg.innerText = "Error: " + err.message;
+  }
+}
+
+async function loadWebCont() {
+  if (!currentWebId) {
+    //alert("currentWebId is empty");
+    return;
+  }
+
+  const res = await fetch("https://section.jameslinc791.workers.dev/api/web-cont?web_id=" + encodeURIComponent(currentWebId));
+  const json = await res.json();
+  const data = json.data || [];
+
+  //alert("web_id=" + currentWebId + " / rows=" + data.length);
+
+  data.forEach((row, i) => {
+    const secName = (row.section_name || "").trim().replace(/^#/, "");
+    const sec = document.getElementById(secName);
+
+    if (!sec) {
+      //alert("section not found: " + row.section_name);
+      return;
+    }
+
+    const box = document.createElement("div");
+
+    // 🔥 強制顯示（白底黑字）
+    box.innerHTML =
+      '<div style="background:#fff;color:#000;padding:20px;font-size:24px;margin-top:10px;">' +
+      'ROW ' + (i + 1) + '<br>' +
+      'section_name = ' + row.section_name + '<br><br>' +
+      (row.section_cont || '(empty)') +
+      '</div>';
+
+    (sec.querySelector(".container") || sec).appendChild(box);
+  });
+}
+
+
+async function loadSlides() {
+  const slider = document.getElementById("bannerSlider");
+  const apiUrl = "https://twscreen-demo-slide-banner.jameslinc791.workers.dev/api/slides?web_id=1";
+
+  try {
+    const res = await fetch(apiUrl);
+    const json = await res.json();
+    const data = json.data || [];
+
+    if (!Array.isArray(data) || data.length === 0) {
+      slider.innerHTML = '<div style="padding:20px;">No banners found.</div>';
+      return;
+    }
+
+    currentWebId = Number(data[0].web_id || 0);
+    await initTopbar();
+
+    slider.innerHTML = data.map((item, i) => {
+      const href = item.link_url && item.link_url.trim() ? item.link_url.trim() : "#";
+      const target = /^https?:\/\//i.test(href) ? ' target="_blank" rel="noopener"' : '';
+      const activeClass = i === 0 ? "slide active" : "slide";
+
+     return `
+  <a href="${href}" class="${activeClass}"${target}>
+
+    <div class="slide-txt">
+      ${
+        item.SLIDE_TXT ||
+        item.slide_txt ||
+        ""
+      }
+    </div>
+
+    <img
+      src="${item.image_url}"
+      alt="Banner ${i + 1}"
+    >
+
+  </a>
+`;
+    }).join("");
+
+    const slides = slider.querySelectorAll(".slide");
+    let index = 0;
+
+    if (slides.length > 1) {
+      setInterval(() => {
+        slides[index].classList.remove("active");
+        index = (index + 1) % slides.length;
+        slides[index].classList.add("active");
+      }, 300);
+    }
+
+    await loadWebCont();
+    await loadSeoKeyword();
+    await loadCompanyInfo();
+    await loadProductTable();
+
+  } catch (err) {
+    slider.innerHTML = '<div style="padding:20px;color:red;">Load banners failed: ' + err.message + '</div>';
+  }
+}
+</script>
+
+
+
+ <script>
+  // Smooth scroll
+ document.addEventListener("click", function(e) {
+  const a = e.target.closest('a[href^="#"]');
+  if (!a) return;
+
+  const id = a.getAttribute("href");
+  if (!id || id === "#") return;
+
+  const el = document.querySelector(id);
+  if (!el) return;
+
+  e.preventDefault();
+
+  const y = el.offsetTop - 300;
+
+  window.scrollTo({
+    top: y,
+    behavior: "smooth"
+  });
+
+  history.replaceState(null, "", id);
+});
+
+  function escapeAttr(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
+  
+async function loadSeoKeyword() {
+
+  if (!currentWebId) return;
+
+  try {
+
+    const res = await fetch(
+      "https://seo.jameslinc791.workers.dev/api/seo?web_id=" +
+      encodeURIComponent(currentWebId)
+    );
+
+    const json = await res.json();
+
+    if (json.ok && json.data) {
+
+      // =========================
+      // description
+      // company_g
+      // =========================
+      if (json.data.company_g) {
+
+        let metaDesc =
+          document.querySelector(
+            'meta[name="description"]'
+          );
+
+        if (!metaDesc) {
+
+          metaDesc =
+            document.createElement("meta");
+
+          metaDesc.name = "description";
+
+          document.head.appendChild(metaDesc);
         }
-      });
-    });
 
-    // RFQ demo: mailto
-    document.getElementById('rfqForm').addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const data = new FormData(e.target);
-      const obj = Object.fromEntries(data.entries());
-      const subject = encodeURIComponent(`[RFQ] ${obj.company || ''} - ${obj.size || ''} ${obj.interface || ''}`.trim());
-      const body = encodeURIComponent(
-`Firma: ${obj.company || ''}
-Imię i nazwisko: ${obj.name || ''}
-Email: ${obj.email || ''}
-Ilość: ${obj.qty || ''}
-Rozmiar: ${obj.size || ''}
-Interfejs: ${obj.interface || ''}
-Jasność: ${obj.brightness || ''}
-Dotyk: ${obj.touch || ''}
+        metaDesc.setAttribute(
+          "content",
+          json.data.company_g
+        );
+      }
 
-Wiadomość:
-${obj.message || ''}
+      // =========================
+      // keywords
+      // company_h
+      // =========================
+      if (json.data.company_h) {
 
-Wysłano ze strony: twscreen.com (one-page)`
+        let metaKeywords =
+          document.querySelector(
+            'meta[name="keywords"]'
+          );
+
+        if (!metaKeywords) {
+
+          metaKeywords =
+            document.createElement("meta");
+
+          metaKeywords.name = "keywords";
+
+          document.head.appendChild(metaKeywords);
+        }
+
+        metaKeywords.setAttribute(
+          "content",
+          json.data.company_h
+        );
+      }
+
+      console.log(
+        "SEO loaded",
+        json.data
       );
-      window.location.href = `mailto:sales@twscreen.com?subject=${subject}&body=${body}`;
+    }
+
+  } catch(err) {
+
+    console.log(
+      "SEO load failed",
+      err
+    );
+
+  }
+}
+
+async function loadTopbar() {
+  const box = document.getElementById("topbarBox");
+  if (!box) return;
+
+  try {
+    const res = await fetch(
+      "https://sectiontitle.jameslinc791.workers.dev/?web_id=" + encodeURIComponent(currentWebId));
+
+    const html = await res.text();
+    box.innerHTML = html;
+
+  } catch (err) {
+    box.innerHTML =
+      '<div style="color:red;padding:20px;">Load topbar failed: ' +
+      err.message +
+      '</div>';
+  }
+}
+
+async function loadCompanyLogoSmall() {
+  try {
+    const res = await fetch(
+      "https://logo-smail-pic.jameslinc791.workers.dev/api/logo?web_id=" + encodeURIComponent(currentWebId));
+
+    const json = await res.json();
+
+    if (json.ok && json.data && json.data.company_logo_small) {
+      const logoUrl = json.data.company_logo_small;
+
+      document.querySelectorAll(".logo").forEach(el => {
+        el.style.backgroundImage = "url('" + logoUrl + "')";
+      });
+    }
+
+  } catch(err) {
+    console.log(err);
+  }
+}
+
+async function initTopbar() {
+  await loadTopbar();
+  await loadCompanyLogoSmall();
+}
+
+async function loadCompanyInfo() {
+  if (!currentWebId) return;
+
+  const box = document.getElementById("companyInfoBox");
+  if (!box) return;
+
+  try {
+    const res = await fetch(
+      "https://company-info.jameslinc791.workers.dev/api/company?web_id=" +
+      encodeURIComponent(currentWebId)
+    );
+
+    const json = await res.json();
+
+    //alert(JSON.stringify(json.data, null, 2));
+
+    if (json.ok && json.data) {
+      const d = json.data;
+
+     box.innerHTML =
+
+  "<font size=10>" +
+  (d.company_contactor || "") +
+  "</font><br>" +
+
+  (
+    d.company_name_long ||
+    d.company_name_short ||
+    ""
+  ) +
+  "<br>" +
+
+  "" +
+  (d.company_website || "") +
+  "<br>" +
+
+  "" +
+  (d.company_tel || "") +
+  "<br>" +
+
+  "Mobile: " +
+  (d.company_mobile || "") +
+  "<br>" +
+
+  "Address: " +
+  (d.company_address || "");
+    }
+
+  } catch (err) {
+    box.innerHTML = "Load company info failed: " + err.message;
+  }
+}function escapeHtml(str) {
+  return String(str || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+
+async function loadProductTable() {
+  if (!currentWebId) return;
+
+  const sec = document.getElementById("products");
+  if (!sec) return;
+
+  const container = sec.querySelector(".container") || sec;
+
+  const old = document.getElementById("productTableBox");
+  if (old) old.remove();
+
+  const box = document.createElement("div");
+  box.id = "productTableBox";
+  box.style.marginTop = "30px";
+  box.innerHTML = '<div style="padding:20px;">Loading products...</div>';
+  container.appendChild(box);
+
+  try {
+    const res = await fetch(
+      "https://twscreen-demo-slide-banner.jameslinc791.workers.dev/api/web-panel?web_id=" +
+      encodeURIComponent(currentWebId)
+    );
+
+    const json = await res.json();
+    const data = json.data || [];
+
+    if (!data.length) {
+      box.innerHTML = '<div style="padding:20px;">No products.</div>';
+      return;
+    }
+
+    let html = '';
+    html += '<div style="overflow-x:auto;">';
+    html += '<table style="width:100%;border-collapse:collapse;background:#fff;color:#000;border-radius:12px;overflow:hidden;">';
+    html += '<thead>';
+    html += '<tr style="background:#222;color:#fff;">';
+    html += '<th style="padding:10px;border:1px solid #ccc;">Icon</th>';
+    html += '<th style="padding:10px;border:1px solid #ccc;">Brand</th>';
+    html += '<th style="padding:10px;border:1px solid #ccc;">Model</th>';
+    html += '<th style="padding:10px;border:1px solid #ccc;">Size</th>';
+    html += '<th style="padding:10px;border:1px solid #ccc;">Resolution</th>';
+    html += '<th style="padding:10px;border:1px solid #ccc;">Brightness</th>';
+    html += '<th style="padding:10px;border:1px solid #ccc;">Interface</th>';
+    html += '</tr>';
+    html += '</thead>';
+    html += '<tbody>';
+
+    data.forEach(function(row) {
+      const website = (row.website || "").trim();
+      const hasLink = /^https?:\/\//i.test(website);
+
+      let pnHtml = escapeHtml(row.model || "");
+      if (hasLink) {
+        pnHtml =
+          '<a href="' + escapeAttr(website) + '" target="_blank" rel="noopener" ' +
+          'style="color:blue;text-decoration:underline;font-weight:bold;">' +
+          escapeHtml(row.model || "") +
+          '</a>';
+      }
+
+      html += '<tr>';
+
+      html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
+      if (row.sm_icon) {
+        html += '<img src="' + escapeAttr(row.sm_icon) + '" style="max-width:60px;max-height:60px;">';
+      }
+      html += '</td>';
+
+      html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.brand || "") + '</td>';
+      html += '<td style="padding:8px;border:1px solid #ccc;">' + pnHtml + '</td>';
+      html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.size || "") + '"</td>';
+      html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.resolution || "") + '</td>';
+      html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.brightness || "") + '</td>';
+      html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.interface || "") + '</td>';
+
+      html += '</tr>';
     });
 
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
+    html += '</tbody>';
+    html += '</table>';
+    html += '</div>';
+
+    box.innerHTML = html;
+
+  } catch (err) {
+    box.innerHTML =
+      '<div style="color:red;padding:20px;">Load products failed: ' +
+      escapeHtml(err.message) +
+      '</div>';
+  }
+}
+
+document.getElementById("year").textContent = new Date().getFullYear();
+loadSlides();
+
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-
