@@ -822,7 +822,7 @@ async function sendData() {
     return;
   }
 
-  const apiUrl = "https://twscreen-demo-2-api.lcdscreentek.workers.dev/insert";
+  const apiUrl = "https://lcdscreentek-demo-2-api.lcdscreentek.workers.dev/insert";
   const url =
     apiUrl +
     "?com=" + encodeURIComponent(company) +
@@ -915,7 +915,7 @@ async function checkEditorTrust() {
 
 async function loadSlides() {
   const slider = document.getElementById("bannerSlider");
-  const apiUrl = "https://twscreen-demo-slide-banner.lcdscreentek.workers.dev/api/slides?web_id=1";
+  const apiUrl = "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/slides?web_id=1";
 
   try {
     const res = await fetch(apiUrl);
@@ -1221,7 +1221,7 @@ async function loadProductTable() {
 
   try {
     const res = await fetch(
-      "https://twscreen-demo-slide-banner.lcdscreentek.workers.dev/api/web-panel?web_id=" +
+      "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/web-panel?web_id=" +
       encodeURIComponent(currentWebId)
     );
 
