@@ -11,6 +11,8 @@
 href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&display=swap"
 rel="stylesheet">
 
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -1508,9 +1510,10 @@ function renderProductTable() {
   }
 
   html += '<div style="overflow-x:auto;">';
-  html += '<table style="width:100%;border-collapse:collapse;background:#fff;color:#000;border-radius:12px;overflow:hidden;">';
+  html += '<table style="width:100%;border-collapse:collapse;background:#fff;color:#000;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">';
+
   html += '<thead>';
-  html += '<tr style="background:#222;color:#fff;">';
+ html += '<tr style="background:#222;color:#fff;font-family:\'Barlow Condensed\',sans-serif;font-size:24px;letter-spacing:1px;">';
   html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
   html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
   html += '<th style="padding:10px;border:1px solid #ccc;">Brand</th>';
@@ -1528,11 +1531,11 @@ function renderProductTable() {
     const paraHtmlText =
       String(row.para_html || "").trim();
 
-    let pnHtml =
-      '<a href="javascript:void(0)" onclick="toggleProductDetail(this)" data-index="' + idx + '" ' +
-      'style="color:blue;text-decoration:underline;font-weight:bold;">' +
-      escapeHtml(row.panel_model || "") +
-      '</a>';
+let pnHtml =
+  '<a href="javascript:void(0)" onclick="toggleProductDetail(this)" data-index="' + idx + '" ' +
+  'style="color:#0066ff;text-decoration:underline;font-weight:bold;font-size:18px;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">' +
+  escapeHtml(row.panel_model || "") +
+  '</a>';
 
     const rowSelected =
       window.inquiryProductRows &&
