@@ -671,6 +671,9 @@ rel="stylesheet">
 
 
           <form id="rfqForm">
+
+           
+
              <div style="
                    width:100%;
                    padding:20px;
@@ -723,6 +726,34 @@ gap:15px;
     <label>Wymagania</label><br>
     <textarea id="remark" placeholder="Your message" style="width:100%; padding:10px; min-height:180px;"></textarea>
   </div>
+
+<div style="
+margin-top:15px;
+font-size:14px;
+color:#ffffff;
+">
+
+<label style="cursor:pointer;">
+
+<input
+  type="checkbox"
+  id="agree_privacy"
+  style="
+    width:auto;
+    margin-right:8px;
+    vertical-align:middle;
+  "
+>
+
+I agree to the
+<a href="#privacy"
+   style="color:#66d9ff;">
+Privacy Policy
+</a>
+
+</label>
+
+</div>
 
   <div style="text-align:right;margin-top:15px;">
 
@@ -795,15 +826,54 @@ width:100%;
       <div class="footer">
        <div class="container">
         © <span id="year"></span>
-           <span id="footerCompanyName"></span>
-             ·
+           <span id="footerCompanyName"></span> 
+             ·<a href="#privacy">Privacy Policy</a>
           <span class="muted"></span>
          </div>
       </div>
     </div>
   </section>
 
+<section id="privacy">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
+<div class="container" style="
+font-family:'Bebas Neue',sans-serif;
+font-size:12px;
+letter-spacing:3px;
+margin:0 auto;
+text-align:center;
+width:100%;
+">
  
+
+
+<h2>Privacy Policy</h2>
+
+<p>
+We collect contact information submitted through RFQ forms,
+including company name, contact person, email address,
+phone number and inquiry details.
+</p>
+
+<p>
+The information is used solely for quotation,
+technical support and customer communication.
+</p>
+
+<p>
+We do not sell or share personal information with third parties.
+</p>
+
+<p>
+Visitors may contact us to request modification or deletion
+of their personal data.
+</p>
+ </div>
+</section>
+
+ 
+
 
 <script>
 
@@ -906,6 +976,18 @@ function writeVisitorLog(eventType, data) {
 
 
 async function sendData() {
+
+ if (
+ !document.getElementById("agree_privacy").checked
+){
+  alert(
+   "Please agree to Privacy Policy."
+  );
+  return;
+}
+ 
+
+
   updateInquiryRemark();
 
   const company = document.getElementById("company").value.trim();
@@ -1388,7 +1470,8 @@ async function loadProductTable() {
     window.productAllRows = data;
     window.productSize = "";
     window.productPage = 1;
-    window.productPageSize = 20;
+    window.productPageSize =
+  Number(window.companyInfo?.company_q ?? 20);
 
     renderProductTable();
 
@@ -1408,6 +1491,11 @@ function renderProductTable() {
   const selectedSize = window.productSize || "";
   const pageSize = window.productPageSize || 20;
   let page = window.productPage || 1;
+
+if (pageSize === 0) {
+  box.innerHTML = "";
+  return;
+}
 
   let filtered = allData;
 
@@ -1493,6 +1581,7 @@ function renderProductTable() {
 
   html += productSizeFilterHtml(selectedSize);
 
+/*
   html += '<div class="product-info-row">';
   html += '<div class="product-count-text">';
   html += 'Total: ' + totalRows + ' item(s). Page ' + page + ' / ' + totalPages + '. 20 item(s) per page.';
@@ -1502,6 +1591,24 @@ function renderProductTable() {
   html += '</div>';
   html += '<div id="rfqNotice" class="rfq-complete-notice"><a href="#rfq" style="color:#ffcc66;text-decoration:underline;">After making your selections, please complete the RFQ FORM.</a></div>';
   html += '</div>';
+
+html += '<div style="text-align:center;margin:15px 0;">';
+html += productPagerHtml(page, totalPages);
+html += '</div>';
+
+*/
+
+html += '<div style="display:flex;justify-content:space-between;align-items:center;margin:15px 0;">';
+
+html += '<div style="flex:1;text-align:center;">';
+html += productPagerHtml(page, totalPages);
+html += '</div>';
+
+html += '<div id="rfqNotice" class="rfq-complete-notice" style="white-space:nowrap;">';
+html += '<a href="#rfq" style="color:#ffcc66;text-decoration:underline;">After making your selections, please complete the RFQ FORM.</a>';
+html += '</div>';
+
+html += '</div>';
 
   if (!pageRows.length) {
     html += '<div style="padding:20px;background:#fff;color:#000;border-radius:12px;">No products.</div>';
@@ -1514,8 +1621,16 @@ function renderProductTable() {
 
   html += '<thead>';
  html += '<tr style="background:#222;color:#fff;font-family:\'Barlow Condensed\',sans-serif;font-size:24px;letter-spacing:1px;">';
-  html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
+
+ /*
+// SM_ICON
+html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
+
+// PIC_LINK
+html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
+*/
+
+
   html += '<th style="padding:10px;border:1px solid #ccc;">Brand</th>';
   html += '<th style="padding:10px;border:1px solid #ccc;">panel_model</th>';
   html += '<th style="padding:10px;border:1px solid #ccc;">Size</th>';
@@ -1544,18 +1659,25 @@ let pnHtml =
 
     html += '<tr' + (rowSelected ? ' class="product-selected-row"' : '') + '>';
 
-    html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
+ /*
+// SM_ICON
+
+html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
 
 if (row.sm_icon) {
   html += '<img src="' + escapeAttr(row.sm_icon) + '" style="max-width:60px;max-height:60px;">';
 }
 
 html += '</td>';
+*/
 
 
 // =========================
 // pic_link
 // =========================
+
+/*
+// PIC_LINK
 
 html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
 
@@ -1568,7 +1690,7 @@ if (row.pic_link) {
 }
 
 html += '</td>';
-
+*/
 
 // =========================
 // brand
@@ -1605,8 +1727,9 @@ html += '<td style="padding:8px;border:1px solid #ccc;">' +
   html += '</tbody>';
   html += '</table>';
   html += '</div>';
-
-  html += productPagerHtml(page, totalPages);
+  html += '<div style="margin-top:10px;color:#cfe3ff;font-size:13px;">';
+  html += 'Total: ' + totalRows + ' item(s). Page ' + page + ' / ' + totalPages + '. ' + pageSize + ' item(s) per page.';
+  html += '</div>';
 
   box.innerHTML = html;
 
@@ -1759,7 +1882,7 @@ async function toggleProductDetail(a) {
   detailTr.className = "product-detail-row";
 
   const detailTd = document.createElement("td");
-  detailTd.colSpan = 9;
+  detailTd.colSpan = 7;
 
   const paraHtml = String(data.para_html || "").trim();
   const rowId = String(data.id || "").trim();
