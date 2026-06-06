@@ -474,9 +474,11 @@ rel="stylesheet">
 
 
 
-.product-selected-row{
+.product-selected-row,
+.product-selected-row td{
   background:#fff7d6 !important;
 }
+
 .product-selected-badge{
   display:inline-block;
   margin-left:6px;
@@ -1525,10 +1527,19 @@ if (pageSize === 0) {
     );
   }
 
-  const selectedRows = allData.filter(function(row) {
-    const key = getProductKey(row);
-    return selectedKeys.includes(key);
+const selectedRows = [];
+
+selectedKeys.forEach(function(key){
+
+  const row = allData.find(function(r){
+    return getProductKey(r) === key;
   });
+
+  if(row){
+    selectedRows.push(row);
+  }
+
+});
 
   const selectedModelSet = {};
   selectedRows.forEach(function(row) {
@@ -1540,19 +1551,21 @@ if (pageSize === 0) {
     return !selectedModelSet[key];
   });
 
-  const totalRows = selectedRows.length + filtered.length;
-  const totalPages = Math.max(Math.ceil(totalRows / pageSize), 1);
+ const totalRows = selectedRows.length + filtered.length;
+ const totalPages = Math.max(Math.ceil(filtered.length / pageSize), 1);
 
   if (page > totalPages) page = totalPages;
   if (page < 1) page = 1;
   window.productPage = page;
 
-  const startIndex = (page - 1) * pageSize;
-  const normalRowsPageSize = Math.max(pageSize - selectedRows.length, 0);
-  const normalRowsStart = Math.max(startIndex - selectedRows.length, 0);
-  const normalRows = filtered.slice(normalRowsStart, normalRowsStart + normalRowsPageSize);
+ const normalRowsStart = (page - 1) * pageSize;
 
-  const pageRows = selectedRows.concat(normalRows);
+const normalRows = filtered.slice(
+  normalRowsStart,
+  normalRowsStart + pageSize
+);
+
+const pageRows = selectedRows.concat(normalRows);
 
   window.inquiryProductRows = pageRows.map(function(row) {
     const productKey =
@@ -2007,11 +2020,12 @@ function toggleInquiryFromButton(btn) {
     const productKey = (data.productKey || "").trim();
     const panel_model = (data.panel_model || "").trim();
 
-    if (btn.getAttribute("data-in-cart") === "1") {
-      removeInquiryByProductKey(productKey);
-      resetInquiryButton(btn);
-      return;
-    }
+ if (btn.getAttribute("data-in-cart") === "1") {
+  removeInquiryByProductKey(productKey);
+  resetInquiryButton(btn);
+  renderProductTable();
+  return;
+}
 
     const td = btn.closest("td");
     const qtyInput = td ? td.querySelector(".inquiry-qty") : null;
@@ -2026,6 +2040,13 @@ function toggleInquiryFromButton(btn) {
     }
 
     if (qtyError) qtyError.style.display = "none";
+   
+
+   if (inquiryCart.length >= 5) {
+     alert("You can select up to 5 items only.");
+     return;
+   }
+
 
     data.qty = qty;
 
@@ -2047,6 +2068,8 @@ function toggleInquiryFromButton(btn) {
     btn.setAttribute("data-in-cart", "1");
     btn.innerText = "DELETE RFQ";
     btn.classList.add("delete");
+
+    renderProductTable();
 
   } catch (err) {
     console.log("Inquiry action failed", err);
