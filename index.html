@@ -1485,6 +1485,8 @@ async function loadProductTable() {
   }
 }
 
+
+
 function renderProductTable() {
   const box = document.getElementById("productTableBox");
   if (!box) return;
@@ -2067,6 +2069,26 @@ function resizeDetailIframe(iframe) {
 
 let inquiryCart = [];
 
+function saveInquiryCart() {
+  localStorage.setItem(
+    "inquiry_cart",
+    JSON.stringify(inquiryCart)
+  );
+}
+
+function loadInquiryCart() {
+  try {
+    const txt =
+      localStorage.getItem("inquiry_cart");
+
+    if (txt) {
+      inquiryCart = JSON.parse(txt) || [];
+    }
+  } catch (err) {
+    inquiryCart = [];
+  }
+}
+
 function toggleInquiryFromButton(btn) {
   try {
     const idx = Number(btn.getAttribute("data-index"));
@@ -2187,6 +2209,7 @@ function removeInquiryByProductKey(productKey) {
     return (item.productKey || "").trim() !== productKey;
   });
 
+    saveInquiryCart();
   updateInquiryRemark();
 }
 
@@ -2201,16 +2224,21 @@ function addInquiry(item) {
     return false;
   }
 
-  inquiryCart.push({
-    productKey: item.productKey || "",
-    qty: item.qty || "",
-    brand: item.brand || "",
-    panel_model: item.panel_model || "",
-    size: item.size || "",
-    resolution: item.resolution || "",
-    brightness: item.brightness || "",
-    signal_interface: item.signal_interface || ""
-  });
+  
+inquiryCart.push({
+  productKey: productKey,
+  qty: urlRfq.qty,
+  brand: found.brand || "",
+  panel_model: found.panel_model || "",
+  size: found.size || "",
+  resolution: found.resolution || "",
+  brightness: found.brightness || "",
+  signal_interface: found.signal_interface || ""
+});
+
+saveInquiryCart();
+
+
 
   updateInquiryRemark();
 
@@ -2228,6 +2256,7 @@ function removeInquiry(index) {
 
 function clearInquiryCart(updateRemark = true) {
   inquiryCart = [];
+  localStorage.removeItem("inquiry_cart");
 
   document.querySelectorAll("button[data-index]").forEach(function(btn) {
     resetInquiryButton(btn);
@@ -2430,6 +2459,8 @@ function getRfqFromUrl() {
   };
 }
 
+
+loadInquiryCart();
 loadSlides();
 
 loadBuyerInfoFromServer();
