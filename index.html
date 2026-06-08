@@ -2171,7 +2171,15 @@ function removeInquiryByProductKey(productKey) {
   updateInquiryRemark();
 }
 
+
 function addInquiry(item) {
+
+  // 最多只能加入 5 個
+  if (inquiryCart.length >= 5) {
+    alert("You can select up to 5 items only.");
+    return false;
+  }
+
   const productKey = (item.productKey || "").trim();
 
   const exists = inquiryCart.some(function(x) {
@@ -2179,6 +2187,7 @@ function addInquiry(item) {
   });
 
   if (exists) {
+    alert("This item is already selected.");
     return false;
   }
 
@@ -2194,7 +2203,6 @@ function addInquiry(item) {
   });
 
   saveInquiryCart();
-
   updateInquiryRemark();
 
   return true;
