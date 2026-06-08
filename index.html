@@ -1526,6 +1526,8 @@ if (!alreadyExists) {
       signal_interface: found.signal_interface || ""
     });
 
+     saveInquiryCart();
+
     }
 
 
@@ -2224,21 +2226,18 @@ function addInquiry(item) {
     return false;
   }
 
-  
-inquiryCart.push({
-  productKey: productKey,
-  qty: urlRfq.qty,
-  brand: found.brand || "",
-  panel_model: found.panel_model || "",
-  size: found.size || "",
-  resolution: found.resolution || "",
-  brightness: found.brightness || "",
-  signal_interface: found.signal_interface || ""
-});
+  inquiryCart.push({
+    productKey: item.productKey || "",
+    qty: item.qty || "",
+    brand: item.brand || "",
+    panel_model: item.panel_model || "",
+    size: item.size || "",
+    resolution: item.resolution || "",
+    brightness: item.brightness || "",
+    signal_interface: item.signal_interface || ""
+  });
 
-saveInquiryCart();
-
-
+  saveInquiryCart();
 
   updateInquiryRemark();
 
