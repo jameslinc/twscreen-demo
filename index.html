@@ -1493,7 +1493,7 @@ function renderProductTable() {
   
 const urlRfq = getRfqFromUrl();
 
-if (urlRfq.model && urlRfq.qty && inquiryCart.length === 0) {
+if (urlRfq.model && urlRfq.qty) {
   const found = allData.find(function(row) {
     return String(row.panel_model || "").trim() === urlRfq.model.trim();
   });
@@ -1507,6 +1507,12 @@ if (urlRfq.model && urlRfq.qty && inquiryCart.length === 0) {
         String(found.size || "").trim()
       );
 
+const alreadyExists = inquiryCart.some(function(item) {
+  return String(item.panel_model || "").trim() === urlRfq.model.trim();
+});
+
+if (!alreadyExists) {
+
     inquiryCart.push({
       productKey: productKey,
       qty: urlRfq.qty,
@@ -1517,6 +1523,10 @@ if (urlRfq.model && urlRfq.qty && inquiryCart.length === 0) {
       brightness: found.brightness || "",
       signal_interface: found.signal_interface || ""
     });
+
+    }
+
+
   }
 }
 
