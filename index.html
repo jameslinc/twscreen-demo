@@ -1492,50 +1492,6 @@ function renderProductTable() {
   if (!box) return;
 
   const allData = window.productAllRows || [];
-  
-const urlRfq = getRfqFromUrl();
-
-if (urlRfq.model && urlRfq.qty) {
-  const found = allData.find(function(row) {
-    return String(row.panel_model || "").trim() === urlRfq.model.trim();
-  });
-
-  if (found) {
-    const productKey =
-      String(found.id || "").trim() ||
-      (
-        String(found.brand || "").trim() + "|" +
-        String(found.panel_model || "").trim() + "|" +
-        String(found.size || "").trim()
-      );
-
-const alreadyExists = inquiryCart.some(function(item) {
-  return String(item.panel_model || "").trim() === urlRfq.model.trim();
-});
-
-if (!alreadyExists) {
-
-    inquiryCart.push({
-      productKey: productKey,
-      qty: urlRfq.qty,
-      brand: found.brand || "",
-      panel_model: found.panel_model || "",
-      size: found.size || "",
-      resolution: found.resolution || "",
-      brightness: found.brightness || "",
-      signal_interface: found.signal_interface || ""
-    });
-
-     saveInquiryCart();
-
-    }
-
-
-  }
-}
-
-
-
   const selectedSize = window.productSize || "";
   const pageSize = window.productPageSize || 20;
   let page = window.productPage || 1;
@@ -2515,3 +2471,4 @@ function showMemberLogin() {
 
 </body>
 </html>
+
