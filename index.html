@@ -1490,6 +1490,38 @@ function renderProductTable() {
   if (!box) return;
 
   const allData = window.productAllRows || [];
+  
+const urlRfq = getRfqFromUrl();
+
+if (urlRfq.model && urlRfq.qty && inquiryCart.length === 0) {
+  const found = allData.find(function(row) {
+    return String(row.panel_model || "").trim() === urlRfq.model.trim();
+  });
+
+  if (found) {
+    const productKey =
+      String(found.id || "").trim() ||
+      (
+        String(found.brand || "").trim() + "|" +
+        String(found.panel_model || "").trim() + "|" +
+        String(found.size || "").trim()
+      );
+
+    inquiryCart.push({
+      productKey: productKey,
+      qty: urlRfq.qty,
+      brand: found.brand || "",
+      panel_model: found.panel_model || "",
+      size: found.size || "",
+      resolution: found.resolution || "",
+      brightness: found.brightness || "",
+      signal_interface: found.signal_interface || ""
+    });
+  }
+}
+
+
+
   const selectedSize = window.productSize || "";
   const pageSize = window.productPageSize || 20;
   let page = window.productPage || 1;
@@ -1659,11 +1691,29 @@ html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
     const paraHtmlText =
       String(row.para_html || "").trim();
 
-let pnHtml =
-  '<a href="javascript:void(0)" onclick="toggleProductDetail(this)" data-index="' + idx + '" ' +
-  'style="color:#0066ff;text-decoration:underline;font-weight:bold;font-size:18px;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">' +
-  escapeHtml(row.panel_model || "") +
-  '</a>';
+const website =
+  String(row.website || "").trim();
+
+let pnHtml = "";
+
+if (website) {
+
+  pnHtml =
+    '<a href="' + escapeAttr(website) + '" ' +
+    'target="_blank" ' +
+    'style="color:#0066ff;text-decoration:underline;font-weight:bold;font-size:18px;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">' +
+    escapeHtml(row.panel_model || "") +
+    '</a>';
+
+} else {
+
+  pnHtml =
+    '<a href="javascript:void(0)" onclick="toggleProductDetail(this)" data-index="' + idx + '" ' +
+    'style="color:#0066ff;text-decoration:underline;font-weight:bold;font-size:18px;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">' +
+    escapeHtml(row.panel_model || "") +
+    '</a>';
+
+}
 
     const rowSelected =
       window.inquiryProductRows &&
@@ -2360,6 +2410,15 @@ function setBrief(id, html) {
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
+
+function getRfqFromUrl() {
+  const params = new URLSearchParams(location.search);
+
+  return {
+    model: params.get("rfq_model") || "",
+    qty: params.get("rfq_qty") || ""
+  };
+}
 
 loadSlides();
 
