@@ -1213,6 +1213,25 @@ renderOtherProductTypeTables();
     slider.innerHTML = '<div style="padding:20px;color:red;">Load banners failed: ' + err.message + '</div>';
   }
 }
+
+
+window.addEventListener("pageshow", function () {
+
+  loadInquiryCart();
+
+  if (typeof renderProductTable === "function") {
+    renderProductTable();
+  }
+
+  if (typeof renderOtherProductTypeTables === "function") {
+    renderOtherProductTypeTables();
+  }
+
+  if (typeof updateInquiryRemark === "function") {
+    updateInquiryRemark();
+  }
+
+});
 </script>
 
 
@@ -2390,6 +2409,12 @@ function saveInquiryCart() {
 }
 
 function loadInquiryCart() {
+  
+console.log(
+  "loadInquiryCart",
+  localStorage.getItem("inquiry_cart")
+);
+
   try {
     const txt =
       localStorage.getItem("inquiry_cart");
@@ -2882,4 +2907,3 @@ function showMemberLogin() {
 
 </body>
 </html>
-
