@@ -371,6 +371,12 @@ rel="stylesheet">
   color:#fff;
   font-size:12px;
 }
+
+.inquiry-small-btn.delete{
+  background:#d32f2f !important;
+  color:#fff !important;
+}
+
 .inquiry-small-btn.clear{
   background:#555;
 }
@@ -587,6 +593,9 @@ rel="stylesheet">
 
 #products{
   padding-top:10px;
+  height:auto;
+  min-height:auto;
+  overflow:visible;
 }
 
 </style>
@@ -1137,7 +1146,11 @@ async function loadSlides() {
   await loadSeoKeyword();
   await loadCompanyInfo();
   await checkEditorTrust();
+  await loadProductTableSetting();
   await loadProductTable();
+ 
+
+
 
   return;
 }
@@ -1183,11 +1196,15 @@ async function loadSlides() {
     }
 
     await loadWebCont();
-    await loadCompanyBrief();
-    await loadSeoKeyword();
-    await loadCompanyInfo();
-    await checkEditorTrust();
-    await loadProductTable();
+await loadCompanyBrief();
+await loadSeoKeyword();
+await loadCompanyInfo();
+await checkEditorTrust();
+await loadProductTableSetting();
+await loadProductTable();
+
+renderOtherProductTypeTables();
+
 
   } catch (err) {
     slider.innerHTML = '<div style="padding:20px;color:red;">Load banners failed: ' + err.message + '</div>';
@@ -1468,6 +1485,14 @@ async function loadProductTable() {
 
     const json = await res.json();
     const data = json.data || [];
+   
+    window.panelRows = data.filter(x =>
+       String(x.product_type || "").toLowerCase() === "panel"
+    );
+
+
+    
+
 
     window.productAllRows = data;
     window.productSize = "";
@@ -1476,6 +1501,9 @@ async function loadProductTable() {
   Number(window.companyInfo?.company_q ?? 20);
 
     renderProductTable();
+
+    loadOtherProductTypeData();
+
 
   } catch (err) {
     box.innerHTML =
@@ -1491,7 +1519,11 @@ function renderProductTable() {
   const box = document.getElementById("productTableBox");
   if (!box) return;
 
-  const allData = window.productAllRows || [];
+  const allData = window.panelRows || [];
+
+
+
+
   const selectedSize = window.productSize || "";
   const pageSize = window.productPageSize || 20;
   let page = window.productPage || 1;
@@ -1517,6 +1549,13 @@ if (pageSize === 0) {
   }).filter(function(key) {
     return key !== "";
   });
+
+
+
+
+
+
+
 
   function getProductKey(row) {
     return (
@@ -1758,16 +1797,340 @@ html += '<td style="padding:8px;border:1px solid #ccc;">' +
   });
 
   html += '</tbody>';
-  html += '</table>';
-  html += '</div>';
-  html += '<div style="margin-top:10px;color:#cfe3ff;font-size:13px;">';
+html += '</table>';
+html += '</div>';
+
+html += '<div id="otherProductTypeBox" style="margin-top:22px;margin-bottom:22px;"></div>';
+
+html += '<div style="clear:both;margin-top:18px;color:#cfe3ff;font-size:13px;">';
+
+
   html += 'Total: ' + totalRows + ' item(s). Page ' + page + ' / ' + totalPages + '. ' + pageSize + ' item(s) per page.';
   html += '</div>';
 
   box.innerHTML = html;
 
-  syncInquiryButtonsAfterRender();
-  updateInquiryRemark();
+ syncInquiryButtonsAfterRender();
+updateInquiryRemark();
+renderOtherProductTypeTables();
+}
+
+
+async function loadProductTableSetting(){
+
+  window.productTableSetting = {};
+
+  const res = await fetch(
+    "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/product-table-setting"
+  );
+
+  const json = await res.json();
+  const rows = json.data || [];
+
+  rows.forEach(function(col){
+
+    const type =
+      String(col.product_type || "")
+      .toLowerCase()
+      .trim();
+
+    if (!window.productTableSetting[type]) {
+      window.productTableSetting[type] = [];
+    }
+
+    window.productTableSetting[type].push(col);
+  });
+  
+  Object.keys(window.productTableSetting).forEach(function(type){
+
+  window.productTableSetting[type].sort(function(a, b){
+    return Number(a.sort_order || 0) - Number(b.sort_order || 0);
+  });
+
+});
+
+}
+
+async function loadOtherProductTypeData(){
+
+  window.productTypeData = {};
+
+  const productTypes = [
+    "controller",
+    "touch",
+    "solution"
+  ];
+
+  for (const type of productTypes) {
+
+    try {
+
+      const res = await fetch(
+        "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/web-product?web_id=" +
+        encodeURIComponent(currentWebId) +
+        "&product_type=" +
+        encodeURIComponent(type)
+      );
+
+      const json = await res.json();
+      const rows = json.data || [];
+
+      window.productTypeData[type] = rows;
+
+    } catch(err) {
+      console.log("load product type failed:", type, err);
+    }
+  }
+
+  renderOtherProductTypeTables();
+}
+
+
+
+function renderOtherProductTypeTables(){
+
+  const box =
+    document.getElementById("otherProductTypeBox");
+
+  if (!box) return;
+
+  const productTypeData =
+    window.productTypeData || {};
+
+  let html = '';
+
+  Object.keys(productTypeData).forEach(function(type){
+
+   let rows =
+  productTypeData[type] || [];
+
+if (!rows.length) return;
+
+rows = rows.slice().sort(function(a, b){
+
+  const keyA =
+    type + "|" +
+    String(a.id || a.panel_model || "").trim();
+
+  const keyB =
+    type + "|" +
+    String(b.id || b.panel_model || "").trim();
+
+  const aSelected =
+    inquiryCart.some(item => String(item.productKey || "") === keyA);
+
+  const bSelected =
+    inquiryCart.some(item => String(item.productKey || "") === keyB);
+
+  if (aSelected && !bSelected) return -1;
+  if (!aSelected && bSelected) return 1;
+
+  return 0;
+});
+
+    html += '<h2 style="color:#fff;margin-top:35px;">' +
+      escapeHtml(type.toUpperCase()) +
+      '</h2>';
+
+    html += '<div style="overflow-x:auto;">';
+
+    html += '<table style="width:100%;border-collapse:collapse;background:#fff;color:#000;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">';
+
+  let cols =
+  window.productTableSetting &&
+  window.productTableSetting[type]
+    ? window.productTableSetting[type]
+    : [];
+
+if (!cols.length) {
+  cols = [
+    { field_name: "brand", field_label: "Brand" },
+    { field_name: "panel_model", field_label: "Model" },
+    { field_name: "signal_interface", field_label: "Interface" }
+  ];
+}
+
+
+html += '<tr style="background:#222;color:#fff;font-size:24px;">';
+
+cols.forEach(function(col){
+  html += '<th style="padding:10px;border:1px solid #ccc;">' +
+    escapeHtml(col.field_label || col.field_name || "") +
+    '</th>';
+});
+
+html += '<th style="padding:10px;border:1px solid #ccc;">Inquiry</th>';
+html += '</tr>';
+
+    rows.forEach(function(row, i){
+      
+      const productKey =
+  type + "|" +
+  String(row.id || row.panel_model || "").trim();
+
+const rowSelected =
+  inquiryCart.some(function(item){
+    return String(item.productKey || "") === productKey;
+  });
+
+   const cartItem =
+  inquiryCart.find(function(item){
+    return String(item.productKey || "") === productKey;
+  });
+
+  const selectedQty =
+  cartItem ? cartItem.qty || "" : "";
+
+      html += '<tr' +
+  (rowSelected ? ' class="product-selected-row"' : '') +
+  '>';
+
+ cols.forEach(function(col){
+
+  const fieldName =
+    String(col.field_name || "").trim();
+
+  let value =
+    row[fieldName] || "";
+
+  html += '<td style="padding:8px;border:1px solid #ccc;">';
+
+ if (fieldName === "panel_model") {
+
+  const website =
+    String(row.website || "").trim();
+
+  if (website) {
+
+    html +=
+      '<a href="' +
+      escapeAttr(website) +
+      '" target="_blank" ' +
+      'style="color:#0066ff;text-decoration:underline;font-weight:bold;">' +
+      escapeHtml(value) +
+      '</a>';
+
+  } else {
+
+    html += escapeHtml(value);
+
+  }
+
+  if (rowSelected) {
+    html +=
+      ' <span class="product-selected-badge">RFQ</span>';
+  }
+
+  } else if (
+  fieldName === "pic_link" ||
+  fieldName === "sm_icon"
+) {
+
+  if (value) {
+    html += '<img src="' + escapeAttr(value) + '" style="max-width:90px;max-height:45px;">';
+  }
+
+  } else if (fieldName === "size") {
+
+  html += escapeHtml(normalizeSize(value || ""));
+
+  if (value) {
+    html += '&quot;';
+  }
+
+} else {
+
+  html += escapeHtml(value);
+
+}
+
+  html += '</td>';
+
+});
+
+      html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
+      html += '<input type="text" class="inquiry-qty" placeholder="QTY" value="' +
+  escapeAttr(selectedQty) +
+  '">';
+
+html += '<button type="button" class="inquiry-small-btn' +
+  (rowSelected ? ' delete' : '') +
+  '" ';
+
+html += 'data-type="' + escapeAttr(type) + '" ';
+html += 'data-key="' + escapeAttr(productKey) + '" ';
+html += 'onclick="toggleOtherProductInquiryFromButton(this)">';
+
+html += rowSelected
+  ? 'DELETE RFQ'
+  : 'ADD TO RFQ';
+
+
+      html += '</button>';
+
+      html += '</td>';
+
+      html += '</tr>';
+    });
+
+    html += '</table>';
+    html += '</div>';
+
+  });
+
+  box.innerHTML = html;
+}
+
+
+
+function toggleOtherProductInquiryFromButton(btn){
+
+  const type = btn.getAttribute("data-type");
+  const productKey = btn.getAttribute("data-key");
+
+  const rows =
+    window.productTypeData &&
+    window.productTypeData[type]
+      ? window.productTypeData[type]
+      : [];
+
+  const row = rows.find(function(r){
+    const key =
+      type + "|" +
+      String(r.id || r.panel_model || "").trim();
+
+    return key === productKey;
+  });
+
+  if (!row) return;
+
+  if (btn.innerText === "DELETE RFQ") {
+    removeInquiryByProductKey(productKey);
+    renderOtherProductTypeTables();
+    return;
+  }
+
+  const td = btn.closest("td");
+  const qtyInput = td ? td.querySelector(".inquiry-qty") : null;
+  const qty = qtyInput ? qtyInput.value.trim() : "";
+
+  if (!qty || Number(qty) <= 0) {
+    alert("QTY MUST > 0");
+    return;
+  }
+
+  addInquiry({
+    productKey: productKey,
+    qty: qty,
+    brand: row.brand || "",
+    panel_model: row.panel_model || "",
+    size: "",
+    resolution: "",
+    brightness: "",
+    signal_interface: row.signal_interface || ""
+  });
+
+  renderOtherProductTypeTables();
 }
 
 function productSizeFilterHtml(activeSize) {
@@ -1932,18 +2295,7 @@ async function toggleProductDetail(a) {
     "https://panel.lcdscreentek.workers.dev/?web_id=" +
     encodeURIComponent(currentWebId || "");
 
-  const editBar = isTrustedEditor
-    ? (
-      '<div class="product-detail-tools" style="border-top:1px solid #e2e8f0;border-bottom:0;gap:8px;">' +
-      '<a class="product-detail-edit-link" href="' + editUrl + '" target="_blank" rel="noopener">' +
-      'EDIT' +
-      '</a>' +
-      '<a class="product-detail-edit-link" style="background:#2f80ed;" href="' + panelUrl + '" target="_blank" rel="noopener">' +
-      '新增與刪除' +
-      '</a>' +
-      '</div>'
-    )
-    : "";
+  const editBar = "";
 
   detailTd.innerHTML =
     '<div class="product-detail-box" style="padding:0;">' +
@@ -2115,6 +2467,52 @@ function toggleInquiryFromButton(btn) {
     console.log("Inquiry action failed", err);
   }
 }
+
+function toggleControllerInquiryFromButton(btn) {
+
+  const idx = Number(btn.getAttribute("data-c-index"));
+
+  const data =
+    window.inquiryControllerRows &&
+    window.inquiryControllerRows[idx]
+      ? Object.assign({}, window.inquiryControllerRows[idx])
+      : {};
+
+  if (btn.getAttribute("data-in-cart") === "1") {
+    removeInquiryByProductKey(data.productKey);
+    renderOtherProductTypeTables();
+    return;
+  }
+
+  const td = btn.closest("td");
+  const qtyInput = td ? td.querySelector(".inquiry-qty") : null;
+  const qty = qtyInput ? qtyInput.value.trim() : "";
+  const qtyNumber = Number(qty);
+
+  if (!qty || !Number.isFinite(qtyNumber) || qtyNumber <= 0) {
+    alert("QTY MUST > 0");
+    if (qtyInput) qtyInput.focus();
+    return;
+  }
+
+  if (inquiryCart.length >= 5) {
+    alert("You can select up to 5 items only.");
+    return;
+  }
+
+  data.qty = qty;
+
+  const ok = addInquiry(data);
+
+  if (!ok) return;
+
+  btn.setAttribute("data-in-cart", "1");
+  btn.innerText = "DELETE RFQ";
+  btn.classList.add("delete");
+
+  renderOtherProductTypeTables();
+}
+
 
 function resetInquiryButton(btn) {
   if (!btn) return;
@@ -2423,6 +2821,8 @@ function getRfqFromUrl() {
 }
 
 
+
+localStorage.removeItem("inquiry_cart");
 loadInquiryCart();
 loadSlides();
 
