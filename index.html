@@ -1061,6 +1061,9 @@ async function sendData() {
       document.getElementById("tel").value = "";
       document.getElementById("remark").value = "";
       clearInquiryCart(false);
+      renderProductTable();
+      renderOtherProductTypeTables();
+
     } else {
       msg.style.color = "red";
       msg.innerText = "Send failed"; // + text;
