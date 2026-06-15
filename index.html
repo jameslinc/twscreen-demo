@@ -1256,24 +1256,17 @@ renderOtherProductTypeTables();
   }
 }
 
-
 window.addEventListener("pageshow", function () {
 
   loadInquiryCart();
-
-  if (typeof renderProductTable === "function") {
-    renderProductTable();
-  }
-
-  if (typeof renderOtherProductTypeTables === "function") {
-    renderOtherProductTypeTables();
-  }
 
   if (typeof updateInquiryRemark === "function") {
     updateInquiryRemark();
   }
 
 });
+
+
 </script>
 
 
