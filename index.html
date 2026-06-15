@@ -2184,15 +2184,16 @@ function toggleOtherProductInquiryFromButton(btn){
   }
 
   addInquiry({
-    productKey: productKey,
-    qty: qty,
-    brand: row.brand || "",
-    panel_model: row.panel_model || "",
-    size: "",
-    resolution: "",
-    brightness: "",
-    signal_interface: row.signal_interface || ""
-  });
+  productKey: productKey,
+  product_type: type,
+  qty: qty,
+  brand: row.brand || "",
+  panel_model: row.panel_model || "",
+  size: "",
+  resolution: "",
+  brightness: "",
+  signal_interface: row.signal_interface || ""
+});
 
   renderOtherProductTypeTables();
 }
@@ -2671,15 +2672,16 @@ function addInquiry(item) {
   }
 
   inquiryCart.push({
-    productKey: item.productKey || "",
-    qty: item.qty || "",
-    brand: item.brand || "",
-    panel_model: item.panel_model || "",
-    size: item.size || "",
-    resolution: item.resolution || "",
-    brightness: item.brightness || "",
-    signal_interface: item.signal_interface || ""
-  });
+  productKey: item.productKey || "",
+  product_type: item.product_type || "panel",
+  qty: item.qty || "",
+  brand: item.brand || "",
+  panel_model: item.panel_model || "",
+  size: item.size || "",
+  resolution: item.resolution || "",
+  brightness: item.brightness || "",
+  signal_interface: item.signal_interface || ""
+});
 
   saveInquiryCart();
   updateInquiryRemark();
@@ -2719,7 +2721,9 @@ function clearInquiryCart(updateRemark = true) {
   }
 }
 
+
 function getInquiryText() {
+
   if (!inquiryCart.length) return "";
 
   let txt = "";
@@ -2730,10 +2734,22 @@ function getInquiryText() {
   inquiryCart.forEach(function(item) {
 
     txt +=
-      (item.brand || "") + " " +
-      (item.size || "") + '\" ' +
-      (item.panel_model || "") + " " +
-      (item.qty || "") + " Pcs\n";
+      "[" +
+      String(item.product_type || "panel").toUpperCase() +
+      "] " +
+
+      (item.qty || "") +
+      " PCS | " +
+
+      (item.brand || "") +
+      " | " +
+
+      (item.size || "") +
+      '\" | ' +
+
+      (item.panel_model || "") +
+
+      "\n";
 
     txt +=
       "------------------------------------------\n";
