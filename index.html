@@ -1,3020 +1,608 @@
-<!doctype html>
-<html lang="pl">
+export default {
+  async fetch(request, env) {
+    console.log("URL=", request.url);
+    const url = new URL(request.url);
+    const path = url.pathname; 
+ 
+    const host = url.hostname.toLowerCase();
+
+const site = await env.d1.prepare(`
+  SELECT web_id
+  FROM web_title
+  WHERE company_website LIKE ?
+  LIMIT 1
+`).bind(`%${host.replace("www.", "")}%`).first();
+
+const currentWebId = site?.web_id || 0;
+
+
+    if (path === "/" || path === "/product") {
+      return html(`
+        <h2>產品詳細頁測試</h2>
+        <p>請用：</p>
+        <pre>/product/G121X1-L03</pre>
+      `);
+    }
+
+    if (path.startsWith("/product/")) {
+      const slug = decodeURIComponent(path.replace("/product/", "")).trim();
+
+      const model = slug.split("__")[0].trim();
+
+      if (!model) {
+        return html("<h2>沒有輸入產品型號</h2>");
+      }
+
+      const row = await env.d1.prepare(`
+  SELECT *
+  FROM web_panel
+  WHERE panel_model = ?
+       AND IFNULL(is_active, 1) = 1
+  LIMIT 1
+`).bind(model).first();
+
+        if (!row) {
+  return html(`<h2>找不到產品：${escapeHtml(model)}</h2>`);
+}
+
+const locale = await env.d1.prepare(`
+  SELECT *
+  FROM web_locale_setting
+  WHERE web_id = ?
+  LIMIT 1
+`).bind(currentWebId || row.web_id).first();
+
+const productTypeSetting = await env.d1.prepare(`
+  SELECT product_h1_template
+  FROM web_product_type_setting
+  WHERE web_id = ?
+    AND LOWER(product_type)=LOWER(?)
+  LIMIT 1
+`)
+.bind(
+  currentWebId || row.web_id,
+  row.product_type || "panel"
+)
+.first();
+
+return html(
+  makeProductPage(
+    row,
+    locale,
+    productTypeSetting,
+    currentWebId
+  )
+);
+    }
+
+    return html("<h2>404 Not Found</h2>", 404);
+  }
+};
+
+function makeProductPage(
+  row,
+  locale,
+  productTypeSetting,
+  currentWebId
+) {
+  const title = `${row.panel_model || ""} LCD Panel | PLSCREEN`;
+  const desc = `${row.panel_model || ""} ${row.size || ""} LCD panel, ${row.resolution || ""}, ${row.brightness || ""}, ${row.signal_interface || ""}. Industrial LCD and touch solution.`;
+
+  const skip = new Set([
+    "id",
+    "web_id",
+    "is_active",
+    "created_at",
+    "updated_at",
+    "website",
+    "sort_order",
+    "sm_icon",
+    "para_html",
+    "parameter",
+    "pic_link",
+    "pare_html"
+  ]);
+
+const topFields = [
+  ["product_type", caption("product_type", "Product Type", locale)],
+
+  ["brand", caption("brand", "Brand", locale)],
+  ["size", caption("size", "Size", locale)],
+  ["panel_type", caption("panel_type", "Panel Type", locale)],
+  ["panel_model", caption("panel_model", "Panel Model", locale)]
+];
+
+  let top = "";
+
+ for (const [key, label] of topFields) {
+
+  const value =
+    String(row[key] || "").trim();
+
+  if (!value) continue;
+
+  top += `
+    <div class="topItem">
+      <div class="label">${escapeHtml(label)}</div>
+      <div class="topValue">${escapeHtml(value)}</div>
+    </div>
+  `;
+}
+
+  let items = [];
+
+  for (const key of Object.keys(row)) {
+    if (skip.has(key)) continue;
+    if (key.toLowerCase() === "environment") continue;
+    if (topFields.some(x => x[0] === key)) continue;
+
+    const value = row[key];
+
+    if (
+      value === null ||
+      value === undefined ||
+      String(value).trim() === ""
+    ) {
+      continue;
+    }
+
+    items.push({
+  label: caption(key, titleName(key), locale),
+  value: String(value)
+});
+  }
+
+  let left = "";
+  let right = "";
+
+  items.forEach((item, i) => {
+    const rowHtml = `
+  <div class="specRow">
+    <div class="specName">${escapeHtml(item.label)}</div>
+    <div class="specValue">${item.value}</div>
+  </div>
+`;
+
+    if (i % 2 === 0) {
+      left += rowHtml;
+    } else {
+      right += rowHtml;
+    }
+  });
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<meta name="description" content="Industrial LCD panel supplier">
-<meta name="keywords" content="LCD panel, industrial display, touch panel">
-
-<link
-href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&display=swap"
-rel="stylesheet">
-
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
+<meta charset="UTF-8">
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(desc)}">
+<meta name="keywords" content="${escapeHtml(row.panel_model || "")}, LCD Panel, Touch Panel, Industrial LCD">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-
-  <title>Taiwan Screen Optronics Co ., Ltd </title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-    :root{
-      --bg:#0b1220;
-      --card:#101a33;
-      --text:#eaf0ff;
-      --muted:#b8c4e6;
-      --line:rgba(255,255,255,.12);
-      --accent:#66d9ff;
-      --accent2:#7cffb2;
-      --shadow: 0 18px 60px rgba(0,0,0,.35);
-      --radius:18px;
-      --max: 1120px;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;background:radial-gradient(1000px 600px at 20% 0%, #162651 0%, rgba(22,38,81,0) 60%),
-                      radial-gradient(900px 500px at 85% 20%, #143a2e 0%, rgba(20,58,46,0) 55%),
-                      var(--bg);
-              color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans", Arial;}
-    a{color:inherit;text-decoration:none}
-    .container{width:min(var(--max), calc(100% - 40px)); margin:0 auto;}
-    .topbar{
-      position:sticky; top:0; z-index:50;
-      backdrop-filter: blur(12px);
-      background: rgba(11,18,32,.68);
-      border-bottom:1px solid var(--line);
-    }
-    .nav{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:14px 0;
-      gap:16px;
-    }
-
-.brand{
-  width:180px;
-
-  font-family:'Bebas Neue',sans-serif;
-
-  font-size:18px;
-
-  letter-spacing:2px;
-
-  text-align:center;
-
-  display:flex;
-
-  flex-direction:column;
-
-  justify-content:center;
-
-  align-items:center;
-
-  line-height:1.0;
-
-  gap:10px;
-}
-
-.logo{
-  display:block;
-
-  width:180px;
-
-  height:75px;
-
-  border-radius:16px;
-
-  background-position:center;
-
-  background-size:cover;
-
-  background-repeat:no-repeat;
-
-  overflow:hidden;
-
-  box-shadow:none;
-}
-
-    .menu{display:flex; gap:18px; align-items:center; flex-wrap:wrap;}
-
-    .menu a{
-  font-family:'Bebas Neue',sans-serif;
-
-  color:#ffffff;
-
-  font-size:18px;
-
-  letter-spacing:1px;
-
-  font-weight:400;
-
-  padding:8px 10px;
-
-  border-radius:12px;
-}
-
-    .menu a:hover{background:rgba(255,255,255,.06); color:var(--text);}
-    .cta{display:flex; gap:10px; align-items:center;}
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 14px; border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.04);
-      color:var(--text); font-weight:650; font-size:14px;
-      transition:.15s transform ease, .15s background ease;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-    .btn:hover{transform: translateY(-1px); background:rgba(255,255,255,.08);}
-    .btn.primary{
-      border:none;
-      background: linear-gradient(135deg, rgba(102,217,255,.95), rgba(124,255,178,.9));
-      color:#05101b;
-      box-shadow: 0 18px 60px rgba(102,217,255,.18);
-    }
-    .btn.primary:hover{filter:saturate(1.05)}
-    .hero{padding:2px 0 26px;}
-    .heroGrid{display:grid; grid-template-columns: 1.15fr .85fr; gap:26px; align-items:stretch;}
-    .kicker{
-      display:inline-flex; gap:10px; align-items:center;
-      padding:8px 12px; border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      color:var(--muted); font-size:13px;
-    }
-    .dot{width:9px;height:9px;border-radius:99px;background:var(--accent); box-shadow:0 0 0 6px rgba(102,217,255,.12);}
-    h1{margin:14px 0 10px; font-size:44px; line-height:1.08;}
-    .sub{color:var(--muted); font-size:16px; line-height:1.7; margin:0 0 18px;}
-    .heroActions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
-    .miniRow{display:flex; gap:14px; flex-wrap:wrap; margin-top:18px; color:var(--muted); font-size:13px;}
-    .pill{padding:8px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.03);}
-    .heroCard{
-      border:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-      min-height: 320px;
-    }
-    .heroCard::before{
-      content:"";
-      position:absolute; inset:-120px -160px auto auto;
-      width:360px;height:360px;border-radius:50%;
-      background: radial-gradient(circle at 30% 30%, rgba(102,217,255,.35), rgba(102,217,255,0) 60%);
-      filter: blur(2px);
-    }
-    .heroCard .img{
-      height: 210px;
-      background:
-        linear-gradient(180deg, rgba(11,18,32,0) 0%, rgba(11,18,32,.88) 100%),
-        url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=70");
-      background-size:cover; background-position:center;
-    }
-    .heroCard .pad{padding:16px 16px 18px; position:relative;}
-    .statGrid{display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:10px;}
-    .stat{
-      border:1px solid var(--line); border-radius:16px; padding:10px 10px;
-      background:rgba(255,255,255,.03);
-    }
-    .stat b{display:block; font-size:16px;}
-    .stat span{color:var(--muted); font-size:12px;}
-    section{padding:12px 0;}
-    .sectionTitle{display:flex; justify-content:space-between; gap:16px; align-items:flex-end; margin-bottom:18px;}
-    .sectionTitle h2{margin:0; font-size:26px;}
-    .sectionTitle p{margin:0;color:var(--muted); max-width:62ch; line-height:1.6;}
-    .grid3{display:grid; grid-template-columns: repeat(3,1fr); gap:14px;}
-    .grid2{display:grid; grid-template-columns: repeat(2,1fr); gap:14px;}
-    .card{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      border-radius: var(--radius);
-      padding:16px;
-    }
-    .card h3{margin:0 0 6px; font-size:16px;}
-    .card p{margin:0; color:var(--muted); line-height:1.65; font-size:14px;}
-    .icon{
-      width:38px;height:38px;border-radius:14px;
-      background: rgba(102,217,255,.12);
-      border:1px solid rgba(102,217,255,.25);
-      display:flex; align-items:center; justify-content:center;
-      margin-bottom:10px;
-      color:var(--accent);
-      font-weight:900;
-    }
-    .gallery{display:grid; grid-template-columns: 1.3fr .7fr; gap:14px;}
-    .gMain,.gSide{
-      border:1px solid var(--line);
-      border-radius: var(--radius);
-      overflow:hidden;
-      background:rgba(255,255,255,.02);
-    }
-    .gMain{min-height:320px; background:
-      linear-gradient(180deg, rgba(11,18,32,.15), rgba(11,18,32,.92)),
-      url("https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1600&q=70");
-      background-size:cover; background-position:center;
-      padding:18px;
-      display:flex; flex-direction:column; justify-content:flex-end;
-    }
-    .gMain b{font-size:18px;}
-    .gMain span{color:var(--muted); margin-top:6px; line-height:1.6;}
-    .gSide{display:grid; grid-template-rows: 1fr 1fr; gap:0;}
-    .gSide .tile{position:relative; min-height:155px;}
-    .gSide .tile:nth-child(1){
-      background: linear-gradient(180deg, rgba(11,18,32,.15), rgba(11,18,32,.92)),
-                  url("https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&w=1200&q=70");
-      background-size:cover; background-position:center;
-    }
-    .gSide .tile:nth-child(2){
-      background: linear-gradient(180deg, rgba(11,18,32,.15), rgba(11,18,32,.92)),
-                  url("https://images.unsplash.com/photo-1517059224940-d4af9eec41b7?auto=format&fit=crop&w=1200&q=70");
-      background-size:cover; background-position:center;
-    }
-    form{display:grid; gap:10px;}
-    label{font-size:13px; color:var(--muted);}
-    input, textarea, select{
-      width:100%;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      padding:12px 12px;
-      outline:none;
-      font-size:14px;
-    }
-    textarea{min-height:120px; resize:vertical;}
-    .row2{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
-    .hint{font-size:12px; color:var(--muted); line-height:1.5;}
-    .footer{
-      padding:26px 0 40px;
-      border-top:1px solid var(--line);
-      color:var(--muted);
-      font-size:13px;
-    }
-    .muted{color:var(--muted);}
-    @media (max-width: 920px){
-      .heroGrid{grid-template-columns:1fr; }
-      h1{font-size:36px;}
-      .grid3{grid-template-columns:1fr;}
-      .grid2{grid-template-columns:1fr;}
-      .gallery{grid-template-columns:1fr;}
-      .menu{display:none;}
-    }
-    .anchor{scroll-margin-top: 220px;}
-  .img-box {
-  position: relative;
-}
-
-
-.badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: red;
-  color: white;
-  padding: 5px 10px;
-  font-size: 14px;
-}
-
-
-.slider{
-  width:100%;
-  overflow:hidden;
-  background:#000;
-}
-
-.slider{
-  position:relative;
-  width:100%;
-  height:auto;
-  overflow:hidden;
-  background:#000;
-}
-
-.slide{
-  display:none;
-  width:100%;
-}
-
-.slide.active{
-  display:block;
-}
-
-.slide img{
-  width:100%;
-  height:auto;
-  display:block;
-}
-
-.slide-txt{
-  position:absolute;
-
-  left:6%;
-  top:12%;
-
-  z-index:10;
-
-  color:#fff;
-
-  font-size:56px;
-  font-weight:900;
-
-  line-height:1.25;
-
-  max-width:40%;
-
-  white-space:pre-line;
-}
-#topbarBox{
-  position: sticky;
-  top: 0;
-  z-index: 9999;
-}
-
-/* =========================
-   Simple Inquiry Cart
-   ========================= */
-.inquiry-cart-box{
-  margin:12px 0;
-  padding:12px;
-  border:1px solid rgba(102,217,255,.35);
-  border-radius:12px;
-  background:rgba(102,217,255,.08);
-}
-.inquiry-cart-title{
-  font-weight:700;
-  margin-bottom:8px;
-  color:#ffffff;
-}
-.inquiry-cart-list{
-  font-size:13px;
-  line-height:1.6;
-  color:#eaf0ff;
-  margin-bottom:10px;
-  white-space:pre-line;
-}
-.inquiry-cart-empty{
-  color:#b8c4e6;
-  font-size:13px;
-}
-.inquiry-cart-actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-.inquiry-small-btn{
-  padding:6px 10px;
-  border:0;
-  border-radius:8px;
-  cursor:pointer;
-  background:#0080ff;
-  color:#fff;
-  font-size:12px;
-}
-
-.inquiry-small-btn.delete{
-  background:#d32f2f !important;
-  color:#fff !important;
-}
-
-.inquiry-small-btn.clear{
-  background:#555;
-}
-.inquiry-small-btn.delete{
-  background:#c62828;
-}
-.inquiry-qty{
-  width:70px !important;
-  padding:6px !important;
-  margin-right:6px !important;
-  border:1px solid #ccc !important;
-  border-radius:6px !important;
-  background:#ffffff !important;
-  color:#333333 !important;
-}
-.inquiry-qty::placeholder{
-  color:#555555 !important;
-}
-.inquiry-qty-error{
-  display:none;
-  margin-top:4px;
-  font-size:11px;
-  color:#c62828;
-  line-height:1.2;
-}
-
-.rfq-complete-notice{
-  display:none;
-  color:#ffcc66;
-  font-size:14px;
-  font-weight:700;
-  text-align:right;
-}
-
-
-
-  
-/* =========================
-   Product Size Filter + Pager
-   ========================= */
-.product-azbar,
-.product-pager{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-  margin:12px 0 14px;
-}
-
-.product-azbar button,
-.product-pager button{
-  padding:7px 10px;
-  border-radius:8px;
-  background:#0d1a2f;
-  color:#cfe3ff;
-  border:1px solid #34445f;
-  cursor:pointer;
-  font-weight:bold;
-  font-size:13px;
-}
-
-.product-azbar button.active,
-.product-pager button.active{
-  background:#2f80ed;
-  color:#fff;
-}
-
-.product-count-text{
-  color:#cfe3ff;
-  font-size:13px;
-  margin:6px 0 10px;
-}
-
-.product-info-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  margin:6px 0 10px;
-}
-
-.product-info-row .product-count-text{
+body{
   margin:0;
-}
-
-.product-info-row .rfq-complete-notice{
-  margin:0;
-  margin-left:auto;
-}
-
-@media (max-width: 700px){
-  .product-info-row{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .product-info-row .rfq-complete-notice{
-    text-align:left;
-    margin-left:0;
-  }
-}
-
-
-
-.product-selected-row,
-.product-selected-row td{
-  background:#fff7d6 !important;
-}
-
-.product-selected-badge{
-  display:inline-block;
-  margin-left:6px;
-  padding:2px 6px;
-  border-radius:999px;
-  background:#f0ad2c;
-  color:#111;
-  font-size:11px;
-  font-weight:700;
-}
-
-
-.product-detail-row td{
-  background:#f8fafc !important;
-  color:#111 !important;
-  padding:0 !important;
-}
-
-.product-detail-box{
-  padding:18px;
-  border:0;
-  border-top:0;
+    padding:24px;
   background:#ffffff;
   color:#111;
-  font-size:14px;
-  line-height:1.6;
-  overflow:auto;
-  box-shadow:none;
+  font-family:'Barlow Condensed',sans-serif;
 }
 
-.product-detail-box iframe{
+.panelBox{
+  font-family:'Barlow Condensed',sans-serif;
+  max-width:1050px;
+  margin:30px auto;
+  padding:34px 42px 42px;
+  background:#ffffff;
+  border-radius:22px;
+  box-shadow:0 18px 45px rgba(0,0,0,.10);
+}
+
+.topGrid{
+  font-family:'Barlow Condensed',sans-serif;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:28px;
+  margin-bottom:38px;
+}
+
+.label{
+ font-family:'Barlow Condensed',sans-serif; 
+  
+  text-transform: uppercase;
+  color:#666;
+  font-size:30px;
+  margin-bottom:6px;
+}
+
+.topValue{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:24px;
+  font-weight:800;
+  line-height:1.25;
+  word-break:break-word;
+}
+
+.specGrid{
+  font-family:'Barlow Condensed',sans-serif;
+  text-transform: uppercase;
+  color:#555;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:32px;
+}
+
+.specRow{
+  font-family:'Barlow Condensed',sans-serif;
+  display:grid;
+  grid-template-columns:minmax(185px, 42%) 1fr;
+  gap:18px;
+  border-bottom:1px solid #e2e2e2;
+  padding:14px 0;
+  font-size:16px;
+  line-height:1.45;
+}
+
+.specName{
+  font-family:'Barlow Condensed',sans-serif;
+  color:#5f6b7a;
+  font-weight:600;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+.specValue{
+font-family:'Barlow Condensed',sans-serif;
+  color:#111827;
+  font-weight:500;
+}
+
+
+
+@media(max-width:800px){
+  .topGrid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .specGrid{
+    grid-template-columns:1fr;
+  }
+}
+
+.rfqBox{
+  font-family:'Barlow Condensed',sans-serif;
+  display:flex;
+  gap:14px;
+  align-items:center;
+  margin-top:32px;
+  padding-top:24px;
+  border-top:1px solid #e5e7eb;
+}
+
+.rfqQty{
+  font-family:'Barlow Condensed',sans-serif;
+  width:110px;
+  height:48px;
+  padding:0 18px;
+  border:1px solid #c9ced8;
+  border-radius:999px;
+  font-size:20px;
+  box-sizing:border-box;
+}
+
+.rfqBtn{
+  font-family:'Barlow Condensed',sans-serif;
+  height:48px;
+  font-size:20px;
   border:0;
-  outline:none;
+  background:#001f4f;
+  color:#fff;
+  padding:0 28px;
+  border-radius:999px;
+  text-decoration:none;
+  font-weight:bold;
+  cursor:pointer;
+  box-sizing:border-box;
 }
 
-.product-detail-box:focus,
-.product-detail-box iframe:focus,
-.product-detail-box iframe:active,
-.product-detail-box a:focus{
-  outline:none !important;
-  box-shadow:none !important;
+.homeBtn{
+  height:48px;
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #001f4f;
+  color:#001f4f;
+  background:#fff;
+  padding:0 26px;
+  border-radius:999px;
+  text-decoration:none;
+  font-weight:bold;
+  box-sizing:border-box;
 }
 
-.product-detail-box table{
+.bottomSeoBox{
+  margin-top:50px;
+  padding-top:30px;
+  border-top:1px solid #ddd;
+}
+
+.paraHtmlBox{
+  font-size:18px;
+  line-height:1.8;
+  color:#333;
+}
+
+.paraHtmlBox,
+.productH1{
+  max-width:100%;
+  box-sizing:border-box;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.paraHtmlBox img,
+.productH1 img{
+  max-width:100%;
+  height:auto;
+  display:block;
+}
+
+.paraHtmlBox table,
+.productH1 table{
+  max-width:100%;
+  width:100%;
+  table-layout:auto;
+}
+
+.paraHtmlBox iframe,
+.productH1 iframe,
+.paraHtmlBox video,
+.productH1 video{
   max-width:100%;
 }
 
-.product-detail-empty{
-  padding:16px;
-  color:#666;
-  font-style:italic;
-}
-
-
-.product-detail-tools{
-  display:flex;
-  justify-content:flex-end;
-  align-items:center;
-  padding:8px 12px;
-  background:#f3f6fb;
-  border-bottom:1px solid #e2e8f0;
-}
-
-.product-detail-edit-link{
-  display:inline-block;
-  padding:6px 12px;
-  border-radius:8px;
-  background:#20a848;
-  color:#fff !important;
-  font-size:12px;
+.productH1{
+  margin-top:30px;
+  font-size:32px;
   font-weight:700;
-  text-decoration:none !important;
+  color:#111;
 }
+.hiddenEditBtn{
+  position:fixed;
 
-.product-detail-edit-link:hover{
-  filter:brightness(1.08);
-}
+  left:50%;
+  bottom:3px;
 
+  width:60px;
+  height:15px;
 
-.product-detail-loading{
-  padding:18px;
-  color:#333;
-  background:#fff;
-  font-size:14px;
-}
+  transform:translateX(-50%);
 
-.product-detail-auto-iframe{
-  width:100%;
-  min-height:120px;
-  border:0;
-  background:#fff;
-  display:block;
-}
+  background:#000;
 
-#brief1{
-  padding:15px 0;
-}
+  opacity:0.005;
 
-#brief2{
-  padding:5px 0;
-}
-
-#brief3{
-  padding:5px 0;
-}
-
-#products{
-  padding-top:10px;
-  height:auto;
-  min-height:auto;
-  overflow:visible;
-}
-
-
-.rfq-cart-display{
-  margin-bottom:16px;
-  padding:14px;
-  border:1px solid rgba(102,217,255,.35);
-  border-radius:12px;
-  background:rgba(102,217,255,.08);
-  color:#fff;
-  font-size:14px;
-}
-
-.rfq-cart-title{
-  font-weight:bold;
-  margin-bottom:8px;
-  color:#ffcc66;
-}
-
-.rfq-cart-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  padding:6px 0;
-  border-bottom:1px dashed rgba(255,255,255,.18);
-}
-
-.rfq-cart-row:last-child{
-  border-bottom:0;
-}
-
-.rfq-cart-delete{
-  border:0;
-  border-radius:8px;
-  background:#d32f2f;
-  color:#fff;
-  padding:5px 10px;
   cursor:pointer;
-  font-size:12px;
+
+  z-index:99999;
 }
 
 </style>
 </head>
-<body> 
 
- <div id="top"></div>
+<body>
+ <div class="panelBox">
 
-<div id="topbarBox">
-  Loading topbar...
-</div>
-
- 
-
-<!--
--->
-
-<div class="slider" id="bannerSlider">
-  <div style="padding:20px;">Loading banners...</div>
-</div>
-
-  <main id="top" class="hero">
-    <div class="container heroGrid">
-      
-    </div>
-  </main>
-
-
-<section id="brief1" class="anchor">
-  <div class="container">
-  </div>
-</section>
-
-<section id="brief2" class="anchor">
-  <div class="container">
-  </div>
-</section>
-
- 
-
-  <section id="products" class="anchor">
-    <div class="container">
-     
-    </div>
-  </section>
-
-  <section id="solutions" class="anchor">
-    <div class="container">
-      <div class="sectionTitle">
-        <div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="why" class="anchor">
-    <div class="container">
-      <div class="sectionTitle">
-        
-      </div>
-    </div>
-  </section>
-
-  <section id="cases" class="anchor">
-    <div class="container">
-      <div class="sectionTitle">
-        
-      </div>
-    </div>
-  </section>
-
-  <section id="rfq" class="anchor">
-    <div class="container">
-      <div class="sectionTitle">
-       
-      </div>
-
-     <div style="width:100%;">
-  <div class="card" style="
-      width:100%;
-      max-width:none;
+  <div style="
+    font-size:18px;
+    color:red;
+    margin-bottom:20px;
+    font-weight:bold;
   ">
-
-
-          <form id="rfqForm">
-           <div id="rfqCartDisplay" class="rfq-cart-display"></div>
-
-             <div style="
-                   width:100%;
-                   padding:20px;
-                   border:1px solid #ccc;
-                   border-radius:12px;
-             ">
-
-  <div style="margin:8px 0;">
-<div style="
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px;
-">
-
-  <div>
-    <label>Firma</label>
-    <input id="company"
-           type="text"
-           placeholder="e.g. ASUS">
-  </div>
-
-  <div>
-    <label>e-Mail</label>
-    <input id="email"
-           type="email"
-           placeholder="e.g. test@test.com">
-  </div>
-
-  <div>
-    <label>Osoba kontaktowa</label>
-    <input id="ctt_person"
-           type="text"
-           placeholder="e.g. James">
-  </div>
-
-  <div>
-    <label>Numer telefonu</label>
-    <input id="tel"
-           type="text"
-           placeholder="e.g. +48 123 456 789">
-  </div>
-
-</div>
     
-
-
   </div>
 
-  <div style="margin:8px 0;">
-    <label>Wymagania</label><br>
-    <textarea id="remark" placeholder="Your message" style="width:100%; padding:10px; min-height:180px;"></textarea>
-  </div>
-
-<div style="
-margin-top:15px;
-font-size:14px;
-color:#ffffff;
-">
-
-<label style="cursor:pointer;">
-
-<input
-  type="checkbox"
-  id="agree_privacy"
-  style="
-    width:auto;
-    margin-right:8px;
-    vertical-align:middle;
-  "
->
-
-I agree to the
-<a href="#privacy"
-   style="color:#66d9ff;">
-Privacy Policy
-</a>
-
-</label>
-
-</div>
-
-  <div style="text-align:right;margin-top:15px;">
-
-<button
- type="button"
- onclick="sendData()"
- style="
- padding:12px 30px;
- background:#00bcd4;
- color:white;
- border:0;
- border-radius:8px;
- font-weight:bold;
- cursor:pointer;
- ">
- SEND RFQ
-</button>
-
-</div>
-
-
-
-  <div id="msg" style="margin-top:12px; color:green;"></div>
-
-</div>    
- </script> 
-
-
-          </form>
-
-
-      
-
-        </div>
-
-    
-      
-
-      
-
-      </div>
+    <div class="topGrid">
+      ${top}
     </div>
-  </section>
 
-
-
-
-<section id="contact" class="anchor">
-   
-   
-
-      
-</section>
-
-
-<section id="brief3" class="anchor">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-
-<div class="container" style="
-font-family:'Bebas Neue',sans-serif;
-font-size:12px;
-letter-spacing:3px;
-margin:0 auto;
-text-align:center;
-width:100%;
-">
-  </div>
-</section>
-
-      <div class="footer">
-       <div class="container">
-        © <span id="year"></span>
-           <span id="footerCompanyName"></span> 
-             ·<a href="#privacy">Privacy Policy</a>
-          <span class="muted"></span>
-         </div>
-      </div>
+    <div class="specGrid">
+      <div>${left}</div>
+      <div>${right}</div>
     </div>
-  </section>
 
-<section id="privacy">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+    <div class="rfqBox">
+  <input
+    id="rfqQty"
+    class="rfqQty"
+    type="number"
+    min="1"
+    placeholder="QTY"
+  >
 
-<div class="container" style="
-font-family:'Bebas Neue',sans-serif;
-font-size:12px;
-letter-spacing:3px;
-margin:0 auto;
-text-align:center;
-width:100%;
-">
- 
+  <button
+    class="rfqBtn"
+    onclick="goRfq()"
+  >
+    Add To RFQ
+  </button>
 
-
-<h2>Privacy Policy</h2>
-
-<p>
-We collect contact information submitted through RFQ forms,
-including company name, contact person, email address,
-phone number and inquiry details.
-</p>
-
-<p>
-The information is used solely for quotation,
-technical support and customer communication.
-</p>
-
-<p>
-We do not sell or share personal information with third parties.
-</p>
-
-<p>
-Visitors may contact us to request modification or deletion
-of their personal data.
-</p>
- </div>
-</section>
-
- 
-
+  <a class="homeBtn" href="https://plscreen.com/">
+    Home
+  </a>
+</div>
 
 <script>
 
 
+function goEditPage() {
+  const pwd = prompt("請輸入編輯密碼");
 
-// =========================
-// Visitor ID
-// =========================
-
-function getVisitorId() {
-
-  let visitorId =
-    localStorage.getItem("visitor_id");
-
-  if (!visitorId) {
-
-    visitorId = crypto.randomUUID();
-
-    localStorage.setItem(
-      "visitor_id",
-      visitorId
-    );
-
-    console.log(
-      "New Visitor:",
-      visitorId
-    );
-  }
-
-  return visitorId;
-}
-
-const VISITOR_ID =
-getVisitorId();
-
-let currentWebId = 1;
-
-async function loadBuyerInfoFromServer() {
-  try {
-    const res = await fetch(
-      "https://lcdscreentek-demo-2-api.lcdscreentek.workers.dev/get-buyer?visitor_id=" +
-      encodeURIComponent(VISITOR_ID)
-    );
-
-    const json = await res.json();
-
-    if (!json.ok || !json.found || !json.data) {
-      return;
-    }
-
-    const d = json.data;
-
-    const companyBox = document.getElementById("company");
-    const emailBox = document.getElementById("email");
-    const contactBox = document.getElementById("ctt_person");
-    const telBox = document.getElementById("tel");
-
-    if (companyBox) companyBox.value = d.company || "";
-    if (emailBox) emailBox.value = d.email || "";
-    if (contactBox) contactBox.value = d.contact || "";
-    if (telBox) telBox.value = d.tel || "";
-
-    localStorage.setItem("buyer_company", d.company || "");
-    localStorage.setItem("buyer_email", d.email || "");
-    localStorage.setItem("buyer_contact", d.contact || "");
-    localStorage.setItem("buyer_tel", d.tel || "");
-
-    console.log("Buyer info loaded", d);
-
-  } catch (err) {
-    console.log("loadBuyerInfoFromServer failed", err);
-  }
-}
-
-let isTrustedEditor = false;
-
-function writeVisitorLog(eventType, data) {
-  try {
-    const email =
-      localStorage.getItem("buyer_email") || "";
-
-    const url =
-      "https://rfq-log.lcdscreentek.workers.dev/visitor-log" +
-      "?web_id=" + encodeURIComponent(currentWebId || 0) +
-      "&visitor_id=" + encodeURIComponent(VISITOR_ID) +
-      "&event_type=" + encodeURIComponent(eventType) +
-      "&panel_id=" + encodeURIComponent(data.id || "") +
-      "&panel_model=" + encodeURIComponent(data.panel_model || "") +
-      "&email=" + encodeURIComponent(email) +
-      "&page_url=" + encodeURIComponent(location.href);
-
-    fetch(url).catch(function(err) {
-      console.log("visitor log failed", err);
-    });
-
-  } catch (err) {
-    console.log("writeVisitorLog error", err);
-  }
-}
-
-
-async function sendData() {
-
- if (
- !document.getElementById("agree_privacy").checked
-){
-  alert(
-   "Please agree to Privacy Policy."
-  );
-  return;
-}
- 
-
-
-  updateInquiryRemark();
-
-  const company = document.getElementById("company").value.trim();
-  const contact = document.getElementById("ctt_person").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const tel = document.getElementById("tel").value.trim();
-  const remark = document.getElementById("remark").value.trim();
-  const msg = document.getElementById("msg");
-
-  if (!company || !contact || !email) {
-    msg.style.color = "red";
-    msg.innerText = "Please fill in Company, Contact, and Email.";
+  if (pwd !== "x753951xZ7895123Z") {
+    alert("密碼錯誤");
     return;
   }
 
-  const apiUrl = "https://lcdscreentek-demo-2-api.lcdscreentek.workers.dev/insert";
-  const url =
-    apiUrl +
-    "?com=" + encodeURIComponent(company) +
-    "&ctt_person=" + encodeURIComponent(contact) +
-    "&em=" + encodeURIComponent(email) +
-    "&tel=" + encodeURIComponent(tel) +
-    "&rem=" + encodeURIComponent(remark) +
-    "&web_id=" + encodeURIComponent(currentWebId) +
-    "&visitor_id=" + encodeURIComponent(VISITOR_ID);
-
-  msg.style.color = "black";
-  msg.innerText = "Sending...";
-
-  try {
-    const res = await fetch(url);
-    const text = await res.text();
-
-    if (res.ok && text.includes("INSERT OK")) {
-        localStorage.setItem(
-       "buyer_email",
-        email
-       );
-
-       localStorage.setItem(
-         "buyer_company",
-         company
-       );
-
-       localStorage.setItem(
-        "buyer_contact",
-         contact
-        );
-
-       localStorage.setItem(
-        "buyer_tel",
-         tel
-        );
-      msg.style.color = "green";
-      msg.innerText = "We have got your message,Thanks You !"; //  web_id=" + currentWebId;
-
-      document.getElementById("company").value = "";
-      document.getElementById("ctt_person").value = "";
-      document.getElementById("email").value = "";
-      document.getElementById("tel").value = "";
-      document.getElementById("remark").value = "";
-      clearInquiryCart(false);
-      renderProductTable();
-      renderOtherProductTypeTables();
-
-    } else {
-      msg.style.color = "red";
-      msg.innerText = "Send failed"; // + text;
-    }
-  } catch (err) {
-    msg.style.color = "red";
-    msg.innerText = "Error"; // + err.message;
-  }
+ location.href =
+  "https://panel-detail-edit.lcdscreentek.workers.dev/edit?web_id=${escapeJs(currentWebId || "")}&id=${escapeJs(row.id || "")}";
 }
 
-async function loadWebCont() {
-  if (!currentWebId) {
-    //alert("currentWebId is empty");
-    return;
-  }
-
-  const res = await fetch("https://section.lcdscreentek.workers.dev/api/web-cont?web_id=" + encodeURIComponent(currentWebId));
-  const json = await res.json();
-  const data = json.data || [];
-
-  //alert("web_id=" + currentWebId + " / rows=" + data.length);
-
-  data.forEach((row, i) => {
-    const secName = (row.section_name || "").trim().replace(/^#/, "");
-    const sec = document.getElementById(secName);
-
-    if (!sec) {
-      //alert("section not found: " + row.section_name);
-      return;
-    }
-
-   const content = String(row.section_cont || "").trim();
-
-if (!content) {
-  return;
-}
-
-const box = document.createElement("div");
-
-box.innerHTML = content;
-
-(sec.querySelector(".container") || sec).appendChild(box);
-   
-  });
-}
-
-
-async function checkEditorTrust() {
-  try {
-    const res = await fetch(
-      "https://webpaneltohtmledit.lcdscreentek.workers.dev/check"
-    );
-
-    const json = await res.json();
-
-    isTrustedEditor =
-      json &&
-      json.trusted === true;
-
-  } catch (err) {
-    isTrustedEditor = false;
-  }
-}
-
-
-async function loadSlides() {
-
-loadInquiryCart();
-
-  const slider = document.getElementById("bannerSlider");
-  const apiUrl =
-  "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/slides?web_id=" +
-  encodeURIComponent(currentWebId);
-
-  try {
-    const res = await fetch(apiUrl);
-    const json = await res.json();
-    const data = json.data || [];
-
-    if (!Array.isArray(data) || data.length === 0) {
-  slider.innerHTML = '<div style="padding:20px;">No banners found.</div>';
-
-  await initTopbar();
-  await loadWebCont();
-  await loadCompanyBrief();
-  await loadSeoKeyword();
-  await loadCompanyInfo();
-  await checkEditorTrust();
-  await loadProductTableSetting();
-  await loadProductTable();
- 
-
-
-
-  return;
-}
-   
-
-    currentWebId = Number(data[0].web_id || 0);
-    await initTopbar();
-
-    slider.innerHTML = data.map((item, i) => {
-      const href = item.link_url && item.link_url.trim() ? item.link_url.trim() : "#";
-      const target = /^https?:\/\//i.test(href) ? ' target="_blank" rel="noopener"' : '';
-      const activeClass = i === 0 ? "slide active" : "slide";
-
-     return `
-  <a href="${href}" class="${activeClass}"${target}>
-
-    <div class="slide-txt">
-      ${
-        item.SLIDE_TXT ||
-        item.slide_txt ||
-        ""
-      }
-    </div>
-
-    <img
-      src="${item.image_url}"
-      alt="Banner ${i + 1}"
-    >
-
-  </a>
-`;
-    }).join("");
-
-    const slides = slider.querySelectorAll(".slide");
-    let index = 0;
-
-    if (slides.length > 1) {
-      setInterval(() => {
-        slides[index].classList.remove("active");
-        index = (index + 1) % slides.length;
-        slides[index].classList.add("active");
-      }, 700);
-    }
-
-    await loadWebCont();
-await loadCompanyBrief();
-await loadSeoKeyword();
-await loadCompanyInfo();
-await checkEditorTrust();
-await loadProductTableSetting();
-await loadProductTable();
-
-renderOtherProductTypeTables();
-
-
-  } catch (err) {
-    slider.innerHTML = '<div style="padding:20px;color:red;">Load banners failed: ' + err.message + '</div>';
-  }
-}
-
-window.addEventListener("pageshow", function () {
-
-  loadInquiryCart();
-
-  if (typeof updateInquiryRemark === "function") {
-    updateInquiryRemark();
-  }
-
-});
-
-
-</script>
-
-
-
- <script>
-  // Smooth scroll
- document.addEventListener("click", function(e) {
-  const a = e.target.closest('a[href^="#"]');
-  if (!a) return;
-
-  const id = a.getAttribute("href");
-  if (!id || id === "#") return;
-
-  const el = document.querySelector(id);
-  if (!el) return;
-
-  e.preventDefault();
-
-  const y = el.offsetTop - 300;
-
-  window.scrollTo({
-    top: y,
-    behavior: "smooth"
-  });
-
-  history.replaceState(null, "", id);
-});
-
-  function escapeAttr(str) {
-    if (str === null || str === undefined) return "";
-    return String(str)
-      .replaceAll("&", "&amp;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
-  }
-  
-async function loadSeoKeyword() {
-
-  if (!currentWebId) return;
-
-  try {
-
-    const res = await fetch(
-      "https://seo.lcdscreentek.workers.dev/api/seo?web_id=" +
-      encodeURIComponent(currentWebId)
-    );
-
-    const json = await res.json();
-
-    if (json.ok && json.data) {
-
-     // =========================
-// description
-// company_k
-// =========================
-if (json.data.company_k) {
-
-  let metaDesc =
-    document.querySelector(
-      'meta[name="description"]'
-    );
-
-  if (!metaDesc) {
-
-    metaDesc =
-      document.createElement("meta");
-
-    metaDesc.name = "description";
-
-    document.head.appendChild(metaDesc);
-  }
-
-  metaDesc.setAttribute(
-    "content",
-    json.data.company_k
-  );
-}
-
-// =========================
-// keywords
-// company_l
-// =========================
-if (json.data.company_l) {
-
-  let metaKeywords =
-    document.querySelector(
-      'meta[name="keywords"]'
-    );
-
-  if (!metaKeywords) {
-
-    metaKeywords =
-      document.createElement("meta");
-
-    metaKeywords.name = "keywords";
-
-    document.head.appendChild(metaKeywords);
-  }
-
-  metaKeywords.setAttribute(
-    "content",
-    json.data.company_l
-  );
-}
-
-      console.log(
-        "SEO loaded",
-        json.data
-      );
-    }
-
-  } catch(err) {
-
-    console.log(
-      "SEO load failed",
-      err
-    );
-
-  }
-}
-
-async function loadTopbar() {
-  const box = document.getElementById("topbarBox");
-  if (!box) return;
-
-  try {
-    const res = await fetch(
-      "https://sectiontitle.lcdscreentek.workers.dev/?web_id=" + encodeURIComponent(currentWebId));
-
-    const html = await res.text();
-    box.innerHTML = html;
-
-  } catch (err) {
-    box.innerHTML =
-      '<div style="color:red;padding:20px;">Load topbar failed: ' +
-      err.message +
-      '</div>';
-  }
-}
-
-async function loadCompanyLogoSmall() {
-  try {
-    const res = await fetch(
-      "https://logo-smail-pic.lcdscreentek.workers.dev/api/logo?web_id=" + encodeURIComponent(currentWebId));
-
-    const json = await res.json();
-
-    if (json.ok && json.data && json.data.company_logo_small) {
-      const logoUrl = json.data.company_logo_small;
-
-      document.querySelectorAll(".logo").forEach(el => {
-        el.style.backgroundImage = "url('" + logoUrl + "')";
-      });
-    }
-
-  } catch(err) {
-    console.log(err);
-  }
-}
-
-async function initTopbar() {
-  await loadTopbar();
-  await loadCompanyLogoSmall();
-}
-
-async function loadCompanyInfo() {
-  if (!currentWebId) return;
-
-  const box = document.getElementById("companyInfoBox");
- 
-
-  try {
-    const res = await fetch(
-      "https://company-info.lcdscreentek.workers.dev/api/company?web_id=" +
-      encodeURIComponent(currentWebId)
-    );
-
-    const json = await res.json();
-
-    //alert(JSON.stringify(json.data, null, 2));
-
-    if (json.ok && json.data) {
-      
-const d = json.data;
-
-const footerName =
-  document.getElementById("footerCompanyName");
-
-if (footerName) {
-  footerName.textContent =
-    d.company_name_long ||
-    d.company_name_short ||
-    "";
-}
-
-document.title =
-  d.company_name_long ||
-  d.company_name_short ||
-  "";
-
-
-   
-      
-
-
-    if (box) {
-
-  box.innerHTML =
-
-  "<font size=10>" +
-  (d.company_contactor || "") +
-  "</font><br>" +
-
-  (
-    d.company_name_long ||
-    d.company_name_short ||
-    ""
-  ) +
-  "<br>" +
-
-  "" +
-  (d.company_website || "") +
-  "<br>" +
-
-  "" +
-  (d.company_tel || "") +
-  "<br>" +
-
-  "Mobile: " +
-  (d.company_mobile || "") +
-  "<br>" +
-
-  "Address: " +
-  (d.company_address || "");
-    }
-}
-
-  } catch (err) {
-    box.innerHTML = "Load company info failed: " + err.message;
-  }
-}function escapeHtml(str) {
-  return String(str || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
-
-
-async function loadProductTable() {
-  if (!currentWebId) return;
-
-  const sec = document.getElementById("products");
-  if (!sec) return;
-
-  const container = sec.querySelector(".container") || sec;
-
-  const old = document.getElementById("productTableBox");
-  if (old) old.remove();
-
-  const box = document.createElement("div");
-  box.id = "productTableBox";
-  box.style.marginTop = "30px";
-  box.innerHTML = '<div style="padding:20px;">Loading products...</div>';
-  container.appendChild(box);
-
-  try {
-    const res = await fetch(
-      "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/web-panel?web_id=" +
-      encodeURIComponent(currentWebId)
-    );
-
-    const json = await res.json();
-    const data = json.data || [];
-   
-    window.panelRows = data.filter(x =>
-       String(x.product_type || "").toLowerCase() === "panel"
-    );
-
-
-    
-
-
-    window.productAllRows = data;
-    window.productSize = "";
-    window.productPage = 1;
-    window.productPageSize =
-  Number(window.companyInfo?.company_q ?? 20);
-
-    renderProductTable();
-
-    loadOtherProductTypeData();
-
-
-  } catch (err) {
-    box.innerHTML =
-      '<div style="color:red;padding:20px;">Load products failed: ' +
-      escapeHtml(err.message) +
-      '</div>';
-  }
-}
-
-
-
-function renderProductTable() {
-  const box = document.getElementById("productTableBox");
-  if (!box) return;
-
-  const allData = window.panelRows || [];
-
-
-
-
-  const selectedSize = window.productSize || "";
-  const pageSize = window.productPageSize || 20;
-  let page = window.productPage || 1;
-
-if (pageSize === 0) {
-  box.innerHTML = "";
-  return;
-}
-
-  let filtered = allData;
-
-  if (selectedSize) {
-    filtered = allData.filter(function(row) {
-      const size = normalizeSize(row.size || "");
-      return size === selectedSize;
-    });
-  }
-
-  // Keep selected RFQ products visible and pinned to the top,
-  // even when using A-Z filter or paging.
-  const selectedKeys = inquiryCart.map(function(item) {
-    return String(item.productKey || "").trim();
-  }).filter(function(key) {
-    return key !== "";
-  });
-
-
-
-
-
-
-
-
-  function getProductKey(row) {
-    return (
-      String(row.id || "").trim() ||
-      (
-        String(row.brand || "").trim() + "|" +
-        String(row.panel_model || "").trim() + "|" +
-        String(row.size || "").trim()
-      )
-    );
-  }
-
-const selectedRows = [];
-
-selectedKeys.forEach(function(key){
-
-  const row = allData.find(function(r){
-    return getProductKey(r) === key;
-  });
-
-  if(row){
-    selectedRows.push(row);
-  }
-
-});
-
-  const selectedModelSet = {};
-  selectedRows.forEach(function(row) {
-    selectedModelSet[getProductKey(row)] = true;
-  });
-
-  filtered = filtered.filter(function(row) {
-    const key = getProductKey(row);
-    return !selectedModelSet[key];
-  });
-
- const totalRows = selectedRows.length + filtered.length;
- const totalPages = Math.max(Math.ceil(filtered.length / pageSize), 1);
-
-  if (page > totalPages) page = totalPages;
-  if (page < 1) page = 1;
-  window.productPage = page;
-
- const normalRowsStart = (page - 1) * pageSize;
-
-const normalRows = filtered.slice(
-  normalRowsStart,
-  normalRowsStart + pageSize
-);
-
-const pageRows = selectedRows.concat(normalRows);
-
-  window.inquiryProductRows = pageRows.map(function(row) {
-    const productKey =
-      String(row.id || "").trim() ||
-      (
-        String(row.brand || "").trim() + "|" +
-        String(row.panel_model || "").trim() + "|" +
-        String(row.size || "").trim()
-      );
-
-    return {
-      id: row.id || "",
-      productKey: productKey,
-      brand: row.brand || "",
-      panel_model: row.panel_model || "",
-      size: row.size || "",
-      resolution: row.resolution || "",
-      brightness: row.brightness || "",
-      signal_interface: row.signal_interface || "",
-      para_html: row.para_html || "",
-      selected: selectedModelSet[productKey] ? "1" : "0"
-    };
-  });
-
-  let html = "";
-
-  html += productSizeFilterHtml(selectedSize);
-
-/*
-  html += '<div class="product-info-row">';
-  html += '<div class="product-count-text">';
-  html += 'Total: ' + totalRows + ' item(s). Page ' + page + ' / ' + totalPages + '. 20 item(s) per page.';
-  if (selectedSize) {
-    html += ' Size: ' + escapeHtml(selectedSize) + '&quot;';
-  }
-  html += '</div>';
-  html += '<div id="rfqNotice" class="rfq-complete-notice"><a href="#rfq" style="color:#ffcc66;text-decoration:underline;">After making your selections, please complete the RFQ FORM.</a></div>';
-  html += '</div>';
-
-html += '<div style="text-align:center;margin:15px 0;">';
-html += productPagerHtml(page, totalPages);
-html += '</div>';
-
-*/
-
-html += '<div style="display:flex;justify-content:space-between;align-items:center;margin:15px 0;">';
-
-html += '<div style="flex:1;text-align:center;">';
-html += productPagerHtml(page, totalPages);
-html += '</div>';
-
-html += '<div id="rfqNotice" class="rfq-complete-notice" style="white-space:nowrap;">';
-html += '<a href="#rfq" style="color:#ffcc66;text-decoration:underline;">After making your selections, please complete the RFQ FORM.</a>';
-html += '</div>';
-
-html += '</div>';
-
-  if (!pageRows.length) {
-    html += '<div style="padding:20px;background:#fff;color:#000;border-radius:12px;">No products.</div>';
-    box.innerHTML = html;
-    return;
-  }
-
-  html += '<div style="overflow-x:auto;">';
-  html += '<table style="width:100%;border-collapse:collapse;background:#fff;color:#000;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">';
-
-  html += '<thead>';
- html += '<tr style="background:#222;color:#fff;font-family:\'Barlow Condensed\',sans-serif;font-size:24px;letter-spacing:1px;">';
-
- /*
-// SM_ICON
-html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
-
-// PIC_LINK
-html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
-*/
-
-
-  html += '<th style="padding:10px;border:1px solid #ccc;">Brand</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">panel_model</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">Size</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">Resolution</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">Brightness</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">signal_interface</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">Inquiry</th>';
-  html += '</tr>';
-  html += '</thead>';
-  html += '<tbody>';
-
-  pageRows.forEach(function(row, idx) {
-    const paraHtmlText =
-      String(row.para_html || "").trim();
-
-const website =
-  String(row.website || "").trim();
-
-let pnHtml = "";
-
-if (website) {
-
-  pnHtml =
-    '<a href="' + escapeAttr(website) + '" ' +
-    'target="_blank" ' +
-    'style="color:#0066ff;text-decoration:underline;font-weight:bold;font-size:18px;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">' +
-    escapeHtml(row.panel_model || "") +
-    '</a>';
-
-} else {
-
-  pnHtml =
-    '<a href="javascript:void(0)" onclick="toggleProductDetail(this)" data-index="' + idx + '" ' +
-    'style="color:#0066ff;text-decoration:underline;font-weight:bold;font-size:18px;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">' +
-    escapeHtml(row.panel_model || "") +
-    '</a>';
-
-}
-
-    const rowSelected =
-      window.inquiryProductRows &&
-      window.inquiryProductRows[idx] &&
-      window.inquiryProductRows[idx].selected === "1";
-
-    html += '<tr' + (rowSelected ? ' class="product-selected-row"' : '') + '>';
-
- /*
-// SM_ICON
-
-html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
-
-if (row.sm_icon) {
-  html += '<img src="' + escapeAttr(row.sm_icon) + '" style="max-width:60px;max-height:60px;">';
-}
-
-html += '</td>';
-*/
-
-
-// =========================
-// pic_link
-// =========================
-
-/*
-// PIC_LINK
-
-html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
-
-if (row.pic_link) {
-
-  html +=
-    '<img src="' +
-    escapeAttr(row.pic_link) +
-    '" style="max-width:120px;max-height:40px;">';
-}
-
-html += '</td>';
-*/
-
-// =========================
-// brand
-// =========================
-
-html += '<td style="padding:8px;border:1px solid #ccc;">' +
-  escapeHtml(row.brand || "") +
-  '</td>';
-    if (rowSelected) {
-      pnHtml += '<span class="product-selected-badge">RFQ</span>';
-    }
-
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + pnHtml + '</td>';
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(normalizeSize(row.size || "")) + '"</td>';
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.resolution || "") + '</td>';
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.brightness || "") + '</td>';
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.signal_interface || "") + '</td>';
-
-    html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;white-space:nowrap;">';
-    html += '<input type="text" class="inquiry-qty" placeholder="QTY" value="">';
-    html += '<button type="button" class="inquiry-small-btn" ';
-    html += 'data-index="' + idx + '" ';
-    html += 'data-in-cart="0" ';
-    html += 'onclick="toggleInquiryFromButton(this)">';
-    html += 'ADD TO RFQ';
-    html += '</button>';
-    html += '<div class="inquiry-qty-error">QTY MUST &gt; 0</div>';
-    html += '<div class="inquiry-exists-error" style="display:none;margin-top:4px;font-size:11px;color:#c62828;line-height:1.2;">Already exists</div>';
-    html += '</td>';
-
-    html += '</tr>';
-  });
-
-  html += '</tbody>';
-html += '</table>';
-html += '</div>';
-
-html += '<div id="otherProductTypeBox" style="margin-top:22px;margin-bottom:22px;"></div>';
-
-html += '<div style="clear:both;margin-top:18px;color:#cfe3ff;font-size:13px;">';
-
-
-  html += 'Total: ' + totalRows + ' item(s). Page ' + page + ' / ' + totalPages + '. ' + pageSize + ' item(s) per page.';
-  html += '</div>';
-
-  box.innerHTML = html;
-
- syncInquiryButtonsAfterRender();
-updateInquiryRemark();
-renderOtherProductTypeTables();
-}
-
-
-async function loadProductTableSetting(){
-
-  window.productTableSetting = {};
-
-  const res = await fetch(
-    "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/product-table-setting"
-  );
-
-  const json = await res.json();
-  const rows = json.data || [];
-
-  rows.forEach(function(col){
-
-    const type =
-      String(col.product_type || "")
-      .toLowerCase()
-      .trim();
-
-    if (!window.productTableSetting[type]) {
-      window.productTableSetting[type] = [];
-    }
-
-    window.productTableSetting[type].push(col);
-  });
-  
-  Object.keys(window.productTableSetting).forEach(function(type){
-
-  window.productTableSetting[type].sort(function(a, b){
-    return Number(a.sort_order || 0) - Number(b.sort_order || 0);
-  });
-
-});
-
-}
-
-async function loadOtherProductTypeData(){
-
-  window.productTypeData = {};
-
-  const productTypes = [
-    "controller",
-    "touch",
-    "solution"
-  ];
-
-  for (const type of productTypes) {
-
-    try {
-
-      const res = await fetch(
-        "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/web-product?web_id=" +
-        encodeURIComponent(currentWebId) +
-        "&product_type=" +
-        encodeURIComponent(type)
-      );
-
-      const json = await res.json();
-      const rows = json.data || [];
-
-      window.productTypeData[type] = rows;
-
-    } catch(err) {
-      console.log("load product type failed:", type, err);
-    }
-  }
-
-  renderOtherProductTypeTables();
-}
-
-
-
-function renderOtherProductTypeTables(){
-
-  const box =
-    document.getElementById("otherProductTypeBox");
-
-  if (!box) return;
-
-  const productTypeData =
-    window.productTypeData || {};
-
-  let html = '';
-
-  Object.keys(productTypeData).forEach(function(type){
-
-   let rows =
-  productTypeData[type] || [];
-
-if (!rows.length) return;
-
-rows = rows.slice().sort(function(a, b){
-
-  const keyA =
-    type + "|" +
-    String(a.id || a.panel_model || "").trim();
-
-  const keyB =
-    type + "|" +
-    String(b.id || b.panel_model || "").trim();
-
-  const aSelected =
-    inquiryCart.some(item => String(item.productKey || "") === keyA);
-
-  const bSelected =
-    inquiryCart.some(item => String(item.productKey || "") === keyB);
-
-  if (aSelected && !bSelected) return -1;
-  if (!aSelected && bSelected) return 1;
-
-  return 0;
-});
-
-    html += '<h2 style="color:#fff;margin-top:35px;">' +
-      escapeHtml(type.toUpperCase()) +
-      '</h2>';
-
-    html += '<div style="overflow-x:auto;">';
-
-    html += '<table style="width:100%;border-collapse:collapse;background:#fff;color:#000;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">';
-
-  let cols =
-  window.productTableSetting &&
-  window.productTableSetting[type]
-    ? window.productTableSetting[type]
-    : [];
-
-if (!cols.length) {
-  cols = [
-    { field_name: "brand", field_label: "Brand" },
-    { field_name: "panel_model", field_label: "Model" },
-    { field_name: "signal_interface", field_label: "Interface" }
-  ];
-}
-
-
-html += '<tr style="background:#222;color:#fff;font-size:24px;">';
-
-cols.forEach(function(col){
-  html += '<th style="padding:10px;border:1px solid #ccc;">' +
-    escapeHtml(col.field_label || col.field_name || "") +
-    '</th>';
-});
-
-html += '<th style="padding:10px;border:1px solid #ccc;">Inquiry</th>';
-html += '</tr>';
-
-    rows.forEach(function(row, i){
-      
-      const productKey =
-  type + "|" +
-  String(row.id || row.panel_model || "").trim();
-
-const rowSelected =
-  inquiryCart.some(function(item){
-    return String(item.productKey || "") === productKey;
-  });
-
-   const cartItem =
-  inquiryCart.find(function(item){
-    return String(item.productKey || "") === productKey;
-  });
-
-  const selectedQty =
-  cartItem ? cartItem.qty || "" : "";
-
-      html += '<tr' +
-  (rowSelected ? ' class="product-selected-row"' : '') +
-  '>';
-
- cols.forEach(function(col){
-
-  const fieldName =
-    String(col.field_name || "").trim();
-
-  let value =
-    row[fieldName] || "";
-
-  html += '<td style="padding:8px;border:1px solid #ccc;">';
-
- if (fieldName === "panel_model") {
-
-  const website =
-    String(row.website || "").trim();
-
-  if (website) {
-
-    html +=
-      '<a href="' +
-      escapeAttr(website) +
-      '" target="_blank" ' +
-      'style="color:#0066ff;text-decoration:underline;font-weight:bold;">' +
-      escapeHtml(value) +
-      '</a>';
-
-  } else {
-
-    html += escapeHtml(value);
-
-  }
-
-  if (rowSelected) {
-    html +=
-      ' <span class="product-selected-badge">RFQ</span>';
-  }
-
-  } else if (
-  fieldName === "pic_link" ||
-  fieldName === "sm_icon"
-) {
-
-  if (value) {
-    html += '<img src="' + escapeAttr(value) + '" style="max-width:90px;max-height:45px;">';
-  }
-
-  } else if (fieldName === "size") {
-
-  html += escapeHtml(normalizeSize(value || ""));
-
-  if (value) {
-    html += '&quot;';
-  }
-
-} else {
-
-  html += escapeHtml(value);
-
-}
-
-  html += '</td>';
-
-});
-
-      html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
-      html += '<input type="text" class="inquiry-qty" placeholder="QTY" value="' +
-  escapeAttr(selectedQty) +
-  '">';
-
-html += '<button type="button" class="inquiry-small-btn' +
-  (rowSelected ? ' delete' : '') +
-  '" ';
-
-html += 'data-type="' + escapeAttr(type) + '" ';
-html += 'data-key="' + escapeAttr(productKey) + '" ';
-html += 'onclick="toggleOtherProductInquiryFromButton(this)">';
-
-html += rowSelected
-  ? 'DELETE RFQ'
-  : 'ADD TO RFQ';
-
-
-      html += '</button>';
-
-      html += '</td>';
-
-      html += '</tr>';
-    });
-
-    html += '</table>';
-    html += '</div>';
-
-  });
-
-  box.innerHTML = html;
-}
-
-
-
-function toggleOtherProductInquiryFromButton(btn){
-
-  const type = btn.getAttribute("data-type");
-  const productKey = btn.getAttribute("data-key");
-
-  const rows =
-    window.productTypeData &&
-    window.productTypeData[type]
-      ? window.productTypeData[type]
-      : [];
-
-  const row = rows.find(function(r){
-    const key =
-      type + "|" +
-      String(r.id || r.panel_model || "").trim();
-
-    return key === productKey;
-  });
-
-  if (!row) return;
-
-  if (btn.innerText === "DELETE RFQ") {
-    removeInquiryByProductKey(productKey);
-    renderOtherProductTypeTables();
-    return;
-  }
-
-  const td = btn.closest("td");
-  const qtyInput = td ? td.querySelector(".inquiry-qty") : null;
-  const qty = qtyInput ? qtyInput.value.trim() : "";
+function goRfq() {
+  const qty =
+    document.getElementById("rfqQty").value.trim();
 
   if (!qty || Number(qty) <= 0) {
-    alert("QTY MUST > 0");
+    alert("Please input QTY");
     return;
   }
 
-  addInquiry({
-  productKey: productKey,
-  product_type: type,
+  const item = {
+  productKey: "${escapeJs(
+  String(row.product_type || 'panel').toLowerCase() === 'panel'
+    ? String(row.id || '')
+    : String(row.product_type || 'panel').toLowerCase() + '|' + String(row.id || '')
+)}",
+  product_type: "${escapeJs(row.product_type || 'panel')}",
   qty: qty,
-  brand: row.brand || "",
-  panel_model: row.panel_model || "",
-  size: "",
-  resolution: "",
-  brightness: "",
-  signal_interface: row.signal_interface || ""
+  brand: "${escapeJs(row.brand || "")}",
+  panel_model: "${escapeJs(row.panel_model || "")}",
+  size: "${escapeJs(row.size || "")}",
+  resolution: "${escapeJs(row.resolution || "")}",
+  brightness: "${escapeJs(row.brightness || "")}",
+  signal_interface: "${escapeJs(row.signal_interface || "")}"
+};
+
+let cart = [];
+
+try {
+  cart = JSON.parse(localStorage.getItem("inquiry_cart") || "[]");
+} catch (err) {
+  cart = [];
+}
+
+const exists = cart.some(function(x) {
+  return String(x.productKey || "") === String(item.productKey || "");
 });
 
-  renderOtherProductTypeTables();
-}
-
-function productSizeFilterHtml(activeSize) {
-  const allData = window.productAllRows || [];
-  const sizeMap = {};
-
-  allData.forEach(function(row) {
-    const size = normalizeSize(row.size || "");
-    if (size) {
-      sizeMap[size] = true;
-    }
-  });
-
-  const sizes = Object.keys(sizeMap).sort(function(a, b) {
-    const na = parseFloat(a);
-    const nb = parseFloat(b);
-
-    if (Number.isFinite(na) && Number.isFinite(nb)) {
-      return na - nb;
-    }
-
-    return a.localeCompare(b);
-  });
-
-  let html = '<div class="product-azbar">';
-
-  html += '<button type="button" class="' + (activeSize === "" ? "active" : "") + '" onclick="setProductSize(\'\')">ALL SIZE</button>';
-
-  sizes.forEach(function(size) {
-    html += '<button type="button" class="' + (activeSize === size ? "active" : "") + '" onclick="setProductSize(\'' + escapeJs(size) + '\')">' + escapeHtml(size) + '&quot;</button>';
-  });
-
-  html += '</div>';
-  return html;
-}
-
-function normalizeSize(v) {
-  return String(v || "")
-    .trim()
-    .replace(/["]/g, "")
-    .replace(/inch/ig, "")
-    .trim();
-}
-
-function escapeJs(v) {
-  return String(v || "")
-    .replaceAll("\\", "\\\\")
-    .replaceAll("'", "\\'");
-}
-
-function productPagerHtml(page, totalPages) {
-  if (totalPages <= 1) return "";
-
-  let html = '<div class="product-pager">';
-
-  if (page > 1) {
-    html += '<button type="button" onclick="setProductPage(' + (page - 1) + ')">Prev</button>';
-  }
-
-  for (let i = 1; i <= totalPages; i++) {
-    html += '<button type="button" class="' + (i === page ? "active" : "") + '" onclick="setProductPage(' + i + ')">' + i + '</button>';
-  }
-
-  if (page < totalPages) {
-    html += '<button type="button" onclick="setProductPage(' + (page + 1) + ')">Next</button>';
-  }
-
-  html += '</div>';
-  return html;
-}
-
-function setProductSize(size) {
-  window.productSize = size || "";
-  window.productPage = 1;
-  renderProductTable();
-}
-
-function setProductPage(page) {
-  window.productPage = page;
-  renderProductTable();
-}
-
-function syncInquiryButtonsAfterRender() {
-  document.querySelectorAll("button[data-index]").forEach(function(btn) {
-    try {
-      const idx = Number(btn.getAttribute("data-index"));
-      const data =
-        window.inquiryProductRows && window.inquiryProductRows[idx]
-          ? window.inquiryProductRows[idx]
-          : {};
-
-      const productKey = (data.productKey || "").trim();
-
-      const exists = inquiryCart.some(function(item) {
-        return (item.productKey || "").trim() === productKey && productKey !== "";
-      });
-
-      if (exists) {
-        btn.setAttribute("data-in-cart", "1");
-        btn.innerText = "DELETE RFQ";
-        btn.classList.add("delete");
-
-        const td = btn.closest("td");
-        const qtyInput = td ? td.querySelector(".inquiry-qty") : null;
-        const cartItem = inquiryCart.find(function(item) {
-          return (item.productKey || "").trim() === productKey;
-        });
-
-        if (qtyInput && cartItem) {
-          qtyInput.value = cartItem.qty || "";
-        }
-      }
-    } catch (err) {
-      // ignore
-    }
-  });
-}
-
-
-
-async function toggleProductDetail(a) {
-  const idx = Number(a.getAttribute("data-index"));
-  const data =
-    window.inquiryProductRows && window.inquiryProductRows[idx]
-      ? window.inquiryProductRows[idx]
-      : {};
-
- writeVisitorLog("panel_click", data);
-
-  const tr = a.closest("tr");
-  if (!tr) return;
-
-  const next = tr.nextElementSibling;
-
-  if (next && next.classList.contains("product-detail-row")) {
-    next.remove();
-    return;
-  }
-
-  document.querySelectorAll(".product-detail-row").forEach(function(row) {
-    row.remove();
-  });
-
-  const detailTr = document.createElement("tr");
-  detailTr.className = "product-detail-row";
-
-  const detailTd = document.createElement("td");
-  detailTd.colSpan = 7;
-
-  const paraHtml = String(data.para_html || "").trim();
-  const rowId = String(data.id || "").trim();
-
-  const viewUrl =
-    "https://webpaneltohtml.lcdscreentek.workers.dev/?id=" +
-    encodeURIComponent(rowId);
-
-  const editUrl =
-    "https://webpaneltohtmledit.lcdscreentek.workers.dev/?id=" +
-    encodeURIComponent(rowId);
-
-  const panelUrl =
-    "https://panel.lcdscreentek.workers.dev/?web_id=" +
-    encodeURIComponent(currentWebId || "");
-
-  const editBar = "";
-
-  detailTd.innerHTML =
-    '<div class="product-detail-box" style="padding:0;">' +
-    '<div class="product-detail-content"></div>' +
-    '<div class="product-detail-edit-bottom">' +
-    editBar +
-    '</div>' +
-    '</div>';
-
-  detailTr.appendChild(detailTd);
-  tr.after(detailTr);
-
-  const contentBox = detailTd.querySelector(".product-detail-content");
-
-  if (paraHtml.length > 5) {
-    contentBox.innerHTML =
-      '<div style="padding:18px;">' +
-      paraHtml +
-      '</div>';
-
-    return;
-  }
-
-  contentBox.innerHTML =
-    '<div class="product-detail-loading">Loading detail...</div>';
-
-  try {
-    const res = await fetch(viewUrl);
-    const detailHtml = await res.text();
-
-    const iframe = document.createElement("iframe");
-    iframe.className = "product-detail-auto-iframe";
-    iframe.setAttribute("scrolling", "no");
-
-    iframe.onload = function() {
-      resizeDetailIframe(iframe);
-      setTimeout(function(){ resizeDetailIframe(iframe); }, 300);
-      setTimeout(function(){ resizeDetailIframe(iframe); }, 1000);
-    };
-
-    contentBox.innerHTML = "";
-    contentBox.appendChild(iframe);
-
-    iframe.srcdoc = detailHtml;
-
-  } catch (err) {
-    contentBox.innerHTML =
-      '<div style="padding:18px;color:#c62828;">' +
-      'Load detail failed: ' + escapeHtml(err.message) +
-      '</div>';
-  }
-}
-
-
-function resizeDetailIframe(iframe) {
-  try {
-    const doc =
-      iframe.contentDocument ||
-      iframe.contentWindow.document;
-
-    if (!doc) return;
-
-    const body = doc.body;
-    const html = doc.documentElement;
-
-    const h = Math.max(
-      body ? body.scrollHeight : 0,
-      body ? body.offsetHeight : 0,
-      html ? html.clientHeight : 0,
-      html ? html.scrollHeight : 0,
-      html ? html.offsetHeight : 0
-    );
-
-    iframe.style.height = Math.max(h + 20, 120) + "px";
-
-  } catch (err) {
-    iframe.style.height = "760px";
-  }
-}
-
-
-let inquiryCart = [];
-
-function saveInquiryCart() {
-  localStorage.setItem(
-    "inquiry_cart",
-    JSON.stringify(inquiryCart)
-  );
-}
-
-
-
-function loadInquiryCart() {
-
-  
-console.log(
-  "loadInquiryCart",
-  localStorage.getItem("inquiry_cart")
-);
-
-  try {
-    const txt =
-      localStorage.getItem("inquiry_cart");
-
-    if (txt) {
-      inquiryCart = JSON.parse(txt) || [];
-    }
-  } catch (err) {
-    inquiryCart = [];
-  }
-}
-
-
-/*
-function loadInquiryCart() {
-  inquiryCart = [];
-  localStorage.removeItem("inquiry_cart");
-}
-*/
-
-function toggleInquiryFromButton(btn) {
-  try {
-    const idx = Number(btn.getAttribute("data-index"));
-    const data =
-      window.inquiryProductRows && window.inquiryProductRows[idx]
-        ? Object.assign({}, window.inquiryProductRows[idx])
-        : {};
-
-  writeVisitorLog("add_to_rfq", data);
-
-    const productKey = (data.productKey || "").trim();
-    const panel_model = (data.panel_model || "").trim();
-
- if (btn.getAttribute("data-in-cart") === "1") {
-  removeInquiryByProductKey(productKey);
-  resetInquiryButton(btn);
-  renderProductTable();
+if (exists) {
+  alert("This item is already selected.");
+  location.href = "https://plscreen.com/#products";
   return;
 }
 
-    const td = btn.closest("td");
-    const qtyInput = td ? td.querySelector(".inquiry-qty") : null;
-    const qtyError = td ? td.querySelector(".inquiry-qty-error") : null;
-    const qty = qtyInput ? qtyInput.value.trim() : "";
-    const qtyNumber = Number(qty);
-
-    if (!qty || qty.toUpperCase() === "QTY" || !Number.isFinite(qtyNumber) || qtyNumber <= 0) {
-      if (qtyError) qtyError.style.display = "block";
-      if (qtyInput) qtyInput.focus();
-      return;
-    }
-
-    if (qtyError) qtyError.style.display = "none";
-   
-
-   if (inquiryCart.length >= 5) {
-     alert("You can select up to 5 items only.");
-     return;
-   }
-
-
-    data.qty = qty;
-
-    const existsError = td ? td.querySelector(".inquiry-exists-error") : null;
-
-    const ok = addInquiry(data);
-
-    if (!ok) {
-      if (existsError) {
-        existsError.style.display = "block";
-      }
-      return;
-    }
-
-    if (existsError) {
-      existsError.style.display = "none";
-    }
-
-    btn.setAttribute("data-in-cart", "1");
-    btn.innerText = "DELETE RFQ";
-    btn.classList.add("delete");
-
-    renderProductTable();
-
-  } catch (err) {
-    console.log("Inquiry action failed", err);
-  }
+if (cart.length >= 5) {
+  alert("You can select up to 5 items only.");
+  location.href = "https://plscreen.com/#products";
+  return;
 }
 
-function toggleControllerInquiryFromButton(btn) {
+item.product_type =
+  item.product_type || "panel";
 
-  const idx = Number(btn.getAttribute("data-c-index"));
+cart.push(item);
 
-  const data =
-    window.inquiryControllerRows &&
-    window.inquiryControllerRows[idx]
-      ? Object.assign({}, window.inquiryControllerRows[idx])
-      : {};
+localStorage.setItem(
+  "inquiry_cart",
+  JSON.stringify(cart)
+);
 
-  if (btn.getAttribute("data-in-cart") === "1") {
-    removeInquiryByProductKey(data.productKey);
-    renderOtherProductTypeTables();
-    return;
-  }
 
-  const td = btn.closest("td");
-  const qtyInput = td ? td.querySelector(".inquiry-qty") : null;
-  const qty = qtyInput ? qtyInput.value.trim() : "";
-  const qtyNumber = Number(qty);
 
-  if (!qty || !Number.isFinite(qtyNumber) || qtyNumber <= 0) {
-    alert("QTY MUST > 0");
-    if (qtyInput) qtyInput.focus();
-    return;
-  }
-
-  if (inquiryCart.length >= 5) {
-    alert("You can select up to 5 items only.");
-    return;
-  }
-
-  data.qty = qty;
-
-  const ok = addInquiry(data);
-
-  if (!ok) return;
-
-  btn.setAttribute("data-in-cart", "1");
-  btn.innerText = "DELETE RFQ";
-  btn.classList.add("delete");
-
-  renderOtherProductTypeTables();
+location.href = "https://plscreen.com/#products";
 }
-
-
-function resetInquiryButton(btn) {
-  if (!btn) return;
-
-  const td = btn.closest("td");
-  const qtyInput = td ? td.querySelector(".inquiry-qty") : null;
-  const qtyError = td ? td.querySelector(".inquiry-qty-error") : null;
-  const existsError = td ? td.querySelector(".inquiry-exists-error") : null;
-
-  btn.setAttribute("data-in-cart", "0");
-  btn.innerText = "ADD TO RFQ";
-  btn.classList.remove("delete");
-
-  // DELETE RFQ 後清空數量欄位，讓 placeholder 自動顯示 QTY
-  if (qtyInput) {
-    qtyInput.value = "";
-  }
-
-  if (qtyError) {
-    qtyError.style.display = "none";
-  }
-
-  if (existsError) {
-    existsError.style.display = "none";
-  }
-}
-
-function resetInquiryButtonByProductKey(productKey) {
-  if (!productKey) return;
-
-  document.querySelectorAll("button[data-index]").forEach(function(btn) {
-    try {
-      const idx = Number(btn.getAttribute("data-index"));
-      const data =
-        window.inquiryProductRows && window.inquiryProductRows[idx]
-          ? window.inquiryProductRows[idx]
-          : {};
-
-      if ((data.productKey || "").trim() === productKey) {
-        resetInquiryButton(btn);
-      }
-    } catch (err) {
-      // ignore
-    }
-  });
-}
-
-function removeInquiryByProductKey(productKey) {
-  inquiryCart = inquiryCart.filter(function(item) {
-    return (item.productKey || "").trim() !== productKey;
-  });
-
-    saveInquiryCart();
-  updateInquiryRemark();
-}
-
-
-function addInquiry(item) {
-
-  // 最多只能加入 5 個
-  if (inquiryCart.length >= 5) {
-    alert("You can select up to 5 items only.");
-    return false;
-  }
-
-  const productKey = (item.productKey || "").trim();
-
-  const exists = inquiryCart.some(function(x) {
-    return (x.productKey || "").trim() === productKey && productKey !== "";
-  });
-
-  if (exists) {
-    alert("This item is already selected.");
-    return false;
-  }
-
-  inquiryCart.push({
-  productKey: item.productKey || "",
-  product_type: item.product_type || "panel",
-  qty: item.qty || "",
-  brand: item.brand || "",
-  panel_model: item.panel_model || "",
-  size: item.size || "",
-  resolution: item.resolution || "",
-  brightness: item.brightness || "",
-  signal_interface: item.signal_interface || ""
-});
-
-  saveInquiryCart();
-  updateInquiryRemark();
-
-  return true;
-}
-
-function removeInquiry(index) {
-  const item = inquiryCart[index];
-  const productKey = item ? (item.productKey || "").trim() : "";
-
-  inquiryCart.splice(index, 1);
-  updateInquiryRemark();
-  resetInquiryButtonByProductKey(productKey);
-}
-
-function clearInquiryCart(updateRemark = true) {
-  inquiryCart = [];
-  localStorage.removeItem("inquiry_cart");
-
-  document.querySelectorAll("button[data-index]").forEach(function(btn) {
-    resetInquiryButton(btn);
-  });
-
-  const list = document.getElementById("inquiryCartList");
-  if (list) {
-    list.innerHTML =
-      '<span class="inquiry-cart-empty">No product selected yet. Click ADD TO RFQ from the product table.</span>';
-  }
-
-  if (updateRemark) {
-    const remark = document.getElementById("remark");
-    if (remark) {
-      const userText = getUserRemarkOnly(remark.value);
-      remark.value = userText;
-    }
-  }
-}
-
-
-function getInquiryText() {
-
-  if (!inquiryCart.length) return "";
-
-  let txt = "";
-
-  txt += "\n\nINQUIRY\n";
-  txt += "------------------------------------------\n";
-
-  inquiryCart.forEach(function(item) {
-
-    txt +=
-      "[" +
-      String(item.product_type || "panel").toUpperCase() +
-      "] " +
-
-      (item.qty || "") +
-      " PCS | " +
-
-      (item.brand || "") +
-      " | " +
-
-      (item.size || "") +
-      '\" | ' +
-
-      (item.panel_model || "") +
-
-      "\n";
-
-    txt +=
-      "------------------------------------------\n";
-  });
-
-  txt += "\n";
-
-  return txt;
-}
-
-function getUserRemarkOnly(text) {
-
-  text = text || "";
-
-  const idx = text.indexOf("INQUIRY");
-
-  if (idx >= 0) {
-    return text.substring(0, idx).trim();
-  }
-
-  return text.trim();
-}
-
-function updateInquiryRemark() {
-  const rfqNotice = document.getElementById("rfqNotice");
-
-  if (rfqNotice) {
-    rfqNotice.style.display =
-      inquiryCart.length > 0
-        ? "block"
-        : "none";
-  }
-
-  const list = document.getElementById("inquiryCartList");
-  const remark = document.getElementById("remark");
-
-  if (list) {
-    if (!inquiryCart.length) {
-      list.innerHTML =
-        '<span class="inquiry-cart-empty">No product selected yet. Click ADD TO RFQ from the product table.</span>';
-    } else {
-      let html = "";
-
-      inquiryCart.forEach(function(item, i) {
-        html +=
-          '<div style="border-bottom:1px solid rgba(255,255,255,.12);padding:6px 0;">' +
-          '<b>' + escapeHtml(item.panel_model || "") + '</b><br>' +
-          'Qty: ' + escapeHtml(item.qty || "") + '<br>' +
-          'Brand: ' + escapeHtml(item.brand || "") + ' / ' +
-          'Size: ' + escapeHtml(item.size || "") + (item.size ? '"' : "") + ' / ' +
-          'Resolution: ' + escapeHtml(item.resolution || "") + '<br>' +
-          'Brightness: ' + escapeHtml(item.brightness || "") + ' / ' +
-          'signal_Interface: ' + escapeHtml(item.signalinterface || "") + '<br>' +
-          '<button type="button" class="inquiry-small-btn clear" onclick="removeInquiry(' + i + ')" style="margin-top:5px;">Remove</button>' +
-          '</div>';
-      });
-
-      list.innerHTML = html;
-    }
-  }
-
-  if (remark) {
-    const userText = getUserRemarkOnly(remark.value);
-    const inquiryText = getInquiryText();
-
-    if (inquiryText) {
-      remark.value =
-        (userText ? userText + "\n\n" : "") +
-        inquiryText;
-    } else {
-      remark.value = userText;
-    }
-  }
-
-renderRfqCartDisplay();
-}
-
-async function loadCompanyBrief() {
-
-  if (!currentWebId) return;
-
-  try {
-
-    const res = await fetch(
-      "https://company-info.lcdscreentek.workers.dev/api/company?web_id=" +
-      encodeURIComponent(currentWebId)
-    );
-
-    const json = await res.json();
-
-    if (!json.ok || !json.data) return;
-
-    const d = json.data;
-
-    window.companyInfo = d;
-
-    setBrief("brief1", d.company_brief_1);
-    setBrief("brief2", d.company_brief_2);
-    setBrief("brief3", d.company_brief_3);
-
-  } catch(err) {
-
-    console.log(err);
-
-  }
-}
-
-function setBrief(id, html) {
-
-  const sec = document.getElementById(id);
-
-  if (!sec) return;
-
-  const box =
-    sec.querySelector(".container") || sec;
-
-  let txt =
-    String(html || "").trim();
-
-  // 只有 brief3 要自動帶公司資料
-  if (!txt && id === "brief3") {
-
-    txt =
-      (window.companyInfo?.company_name_long || "") +
-      " " +
-      (window.companyInfo?.company_address || "") +
-      " " +
-      (window.companyInfo?.company_email || "");
-
-  }
-
-  if (!txt) {
-
-    sec.style.display = "none";
-
-    return;
-  }
-
-  sec.style.display = "block";
-
-  box.innerHTML = txt;
-}
-
-document.getElementById("year").textContent = new Date().getFullYear();
-
-
-function getRfqFromUrl() {
-  const params = new URLSearchParams(location.search);
-
-  return {
-    model: params.get("rfq_model") || "",
-    qty: params.get("rfq_qty") || ""
-  };
-}
-
-
-
-loadBuyerInfoFromServer();
-loadInquiryCart();
-loadSlides();
-
-loadBuyerInfoFromServer();
-
 </script>
+
+    <div class="bottomSeoBox">
+
+      ${row.para_html ? `
+        <div class="paraHtmlBox">
+          ${row.para_html}
+        </div>
+      ` : ""}
+
+      ${productTypeSetting?.product_h1_template ? `
+  <div class="productH1">
+     ${productTypeSetting.product_h1_template}
+  </div>
+` : ""}
+
+    </div>
+
+  </div>
 
 <div
-  onclick="showMemberLogin()"
-  style="
-    text-align:center;
-    color:#222;
-    font-size:8px;
-    cursor:pointer;
-    user-select:none;
-    margin-top:40px;
-    opacity:0.08;
-  "
->@@@@
-</div>
-
-<script>
-
-function getCurrentWebId() {
-
-  if (currentWebId && Number(currentWebId) > 0) {
-    return currentWebId;
-  }
-
-  const m = location.href.match(/[?&]web_id=([0-9]+)/);
-  if (m) {
-    return m[1];
-  }
-
-  return 3;
-}
-
-function showMemberLogin() {
-
-  const keycode =
-    prompt("Input Keycode");
-
-  if (!keycode) return;
-
-  const url =
-    "https://editallapi.lcdscreentek.workers.dev/" +
-    "?keycode=" + encodeURIComponent(keycode) +
-    "&web_id=" + encodeURIComponent(getCurrentWebId());
-
-  location.href = url;
-}
-
-
-function renderRfqCartDisplay(){
-
-  const box =
-    document.getElementById("rfqCartDisplay");
-
-  if (!box) return;
-
-  if (!inquiryCart.length) {
-    box.innerHTML =
-      '<div style="color:#b8c4e6;">No RFQ items selected.</div>';
-    return;
-  }
-
-  let html = '';
-
-  html += '<div class="rfq-cart-title">CURRENT RFQ ITEMS</div>';
-
-  inquiryCart.forEach(function(item, index){
-
-    html += '<div class="rfq-cart-row">';
-
-    html += '<div>' +
-      escapeHtml(item.brand || '') + ' ' +
-      escapeHtml(item.size || '') + '&quot; ' +
-      escapeHtml(item.panel_model || '') +
-      ' <b>' + escapeHtml(item.qty || '') + ' Pcs</b>' +
-      '</div>';
-
-    html += '<button type="button" class="rfq-cart-delete" onclick="deleteRfqCartItem(' + index + ')">';
-    html += 'DELETE';
-    html += '</button>';
-
-    html += '</div>';
-  });
-
-  html += '<div style="text-align:right;margin-top:10px;">';
-  html += '<button type="button" class="rfq-cart-delete" onclick="clearInquiryCart(true);renderProductTable();renderOtherProductTypeTables();renderRfqCartDisplay();">';
-  html += 'CLEAR ALL';
-  html += '</button>';
-  html += '</div>';
-
-  box.innerHTML = html;
-}
-
-
-function deleteRfqCartItem(index){
-
-  if (index < 0 || index >= inquiryCart.length) return;
-
-  inquiryCart.splice(index, 1);
-
-  saveInquiryCart();
-  updateInquiryRemark();
-
-  renderProductTable();
-  renderOtherProductTypeTables();
-  renderRfqCartDisplay();
-}
-
-</script>
+  class="hiddenEditBtn"
+  onclick="goEditPage()"
+></div>
 
 
 </body>
 </html>
+`;
+}
+
+function titleName(s) {
+  return String(s)
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, m => m.toUpperCase());
+}
+
+function html(body, status = 200) {
+  return new Response(body, {
+    status,
+    headers: {
+      "content-type": "text/html;charset=UTF-8"
+    }
+  });
+}
+
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escapeJs(str) {
+  return String(str ?? "")
+    .replaceAll("\\", "\\\\")
+    .replaceAll('"', '\\"')
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "");
+}
+
+function caption(key, defaultText, locale) {
+
+  if (!locale) {
+    return defaultText;
+  }
+
+  const target = normalizeFieldName(key);
+
+  for (const localeKey of Object.keys(locale)) {
+
+    if (
+      normalizeFieldName(localeKey) === target &&
+      locale[localeKey] !== null &&
+      locale[localeKey] !== undefined &&
+      String(locale[localeKey]).trim() !== ""
+    ) {
+      return String(locale[localeKey]);
+    }
+  }
+
+  return defaultText;
+}
+
+function normalizeFieldName(str) {
+  return String(str || "")
+    .toLowerCase()
+    .replaceAll("_", "")
+    .replaceAll(" ", "")
+    .replaceAll("-", "");
+}
