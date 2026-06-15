@@ -2761,30 +2761,16 @@ function getInquiryText() {
 }
 
 function getUserRemarkOnly(text) {
+
   text = text || "";
 
-  // Remove old generated inquiry lines completely
-  const lines = text.split("\n");
+  const idx = text.indexOf("INQUIRY");
 
-  const cleaned = lines.filter(function(line) {
+  if (idx >= 0) {
+    return text.substring(0, idx).trim();
+  }
 
-    const t = line.trim();
-
-    // remove separator
-    if (t === "----------------------" || t === "------------------------------------------" || t === "INQUIRY") {
-      return false;
-    }
-
-    // remove generated RFQ rows:
-    // BRAND SIZE MODEL QTY Pcs
-    if (/\bPcs$/i.test(t)) {
-      return false;
-    }
-
-    return true;
-  });
-
-  return cleaned.join("\n").trim();
+  return text.trim();
 }
 
 function updateInquiryRemark() {
