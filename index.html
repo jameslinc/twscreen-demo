@@ -598,6 +598,46 @@ rel="stylesheet">
   overflow:visible;
 }
 
+
+.rfq-cart-display{
+  margin-bottom:16px;
+  padding:14px;
+  border:1px solid rgba(102,217,255,.35);
+  border-radius:12px;
+  background:rgba(102,217,255,.08);
+  color:#fff;
+  font-size:14px;
+}
+
+.rfq-cart-title{
+  font-weight:bold;
+  margin-bottom:8px;
+  color:#ffcc66;
+}
+
+.rfq-cart-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:6px 0;
+  border-bottom:1px dashed rgba(255,255,255,.18);
+}
+
+.rfq-cart-row:last-child{
+  border-bottom:0;
+}
+
+.rfq-cart-delete{
+  border:0;
+  border-radius:8px;
+  background:#d32f2f;
+  color:#fff;
+  padding:5px 10px;
+  cursor:pointer;
+  font-size:12px;
+}
+
 </style>
 </head>
 <body> 
@@ -682,8 +722,7 @@ rel="stylesheet">
 
 
           <form id="rfqForm">
-
-           
+           <div id="rfqCartDisplay" class="rfq-cart-display"></div>
 
              <div style="
                    width:100%;
@@ -2782,6 +2821,8 @@ function updateInquiryRemark() {
       remark.value = userText;
     }
   }
+
+renderRfqCartDisplay();
 }
 
 async function loadCompanyBrief() {
@@ -2916,6 +2957,67 @@ function showMemberLogin() {
 
   location.href = url;
 }
+
+
+function renderRfqCartDisplay(){
+
+  const box =
+    document.getElementById("rfqCartDisplay");
+
+  if (!box) return;
+
+  if (!inquiryCart.length) {
+    box.innerHTML =
+      '<div style="color:#b8c4e6;">No RFQ items selected.</div>';
+    return;
+  }
+
+  let html = '';
+
+  html += '<div class="rfq-cart-title">CURRENT RFQ ITEMS</div>';
+
+  inquiryCart.forEach(function(item, index){
+
+    html += '<div class="rfq-cart-row">';
+
+    html += '<div>' +
+      escapeHtml(item.brand || '') + ' ' +
+      escapeHtml(item.size || '') + '&quot; ' +
+      escapeHtml(item.panel_model || '') +
+      ' <b>' + escapeHtml(item.qty || '') + ' Pcs</b>' +
+      '</div>';
+
+    html += '<button type="button" class="rfq-cart-delete" onclick="deleteRfqCartItem(' + index + ')">';
+    html += 'DELETE';
+    html += '</button>';
+
+    html += '</div>';
+  });
+
+  html += '<div style="text-align:right;margin-top:10px;">';
+  html += '<button type="button" class="rfq-cart-delete" onclick="clearInquiryCart(true);renderProductTable();renderOtherProductTypeTables();renderRfqCartDisplay();">';
+  html += 'CLEAR ALL';
+  html += '</button>';
+  html += '</div>';
+
+  box.innerHTML = html;
+}
+
+
+function deleteRfqCartItem(index){
+
+  if (index < 0 || index >= inquiryCart.length) return;
+
+  inquiryCart.splice(index, 1);
+
+  saveInquiryCart();
+  updateInquiryRemark();
+
+  renderProductTable();
+  renderOtherProductTypeTables();
+  renderRfqCartDisplay();
+}
+
 </script>
 
 
