@@ -2015,9 +2015,19 @@ if (!cols.length) {
 html += '<tr style="background:#222;color:#fff;font-size:24px;">';
 
 cols.forEach(function(col){
-  html += '<th style="padding:10px;border:1px solid #ccc;">' +
+
+  let thStyle =
+    'padding:10px;border:1px solid #ccc;';
+
+  if (col.width) {
+    thStyle +=
+      'width:' + col.width + ';';
+  }
+
+  html += '<th style="' + thStyle + '">' +
     escapeHtml(col.field_label || col.field_name || "") +
     '</th>';
+
 });
 
 html += '<th style="padding:10px;border:1px solid #ccc;">Inquiry</th>';
@@ -2054,7 +2064,21 @@ const rowSelected =
   let value =
     row[fieldName] || "";
 
-  html += '<td style="padding:8px;border:1px solid #ccc;">';
+
+
+  let tdStyle =
+  'padding:8px;border:1px solid #ccc;';
+
+if (col.width) {
+  tdStyle +=
+    'width:' + col.width + ';';
+}
+
+
+html += '<td style="' + tdStyle + '">';
+
+
+
 
  if (fieldName === "panel_model") {
 
@@ -2087,9 +2111,27 @@ const rowSelected =
   fieldName === "sm_icon"
 ) {
 
-  if (value) {
-    html += '<img src="' + escapeAttr(value) + '" style="max-width:90px;max-height:45px;">';
-  }
+ 
+if (value) {
+
+ let imgStyle = `
+  max-width:${col.width || '180px'};
+  max-height:${col.height || '120px'};
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  display:block;
+  margin:0 auto;
+  border-radius:12px;
+`;
+
+  html +=
+    '<img src="' +
+    escapeAttr(value) +
+    '" style="' +
+    imgStyle +
+    '">';
+}
 
   } else if (fieldName === "size") {
 
@@ -2101,7 +2143,7 @@ const rowSelected =
 
 } else {
 
-  html += escapeHtml(value);
+    html += String(value || "");
 
 }
 
