@@ -963,7 +963,8 @@ function getVisitorId() {
 const VISITOR_ID =
 getVisitorId();
 
-let currentWebId = 1;
+let currentWebId = 2156;
+let productKeyword = "";
 
 async function loadBuyerInfoFromServer() {
   try {
@@ -1596,12 +1597,33 @@ if (pageSize === 0) {
 
   let filtered = allData;
 
+  if (allData.length > 13) {
+
+  if (productKeyword) {
+    filtered = allData.filter(function(row) {
+      const text = [
+        row.brand,
+        row.panel_model,
+        row.size,
+        row.resolution,
+        row.brightness,
+        row.signal_interface
+      ].join(" ").toLowerCase();
+
+      return text.includes(productKeyword);
+    });
+  }
+
+} else {
+
   if (selectedSize) {
     filtered = allData.filter(function(row) {
       const size = normalizeSize(row.size || "");
       return size === selectedSize;
     });
   }
+
+}
 
   // Keep selected RFQ products visible and pinned to the top,
   // even when using A-Z filter or paging.
@@ -2239,6 +2261,51 @@ function toggleOtherProductInquiryFromButton(btn){
 
 function productSizeFilterHtml(activeSize) {
   const allData = window.productAllRows || [];
+
+  // 超過 13 個，改用關鍵字搜尋
+  if (allData.length > 13) {
+    
+    return `
+<div style="display:flex;gap:8px;margin:12px 0 14px;">
+
+  <input
+    id="productKeywordInput"
+    type="text"
+    placeholder="Search model / brand / size / resolution"
+    value="${escapeAttr(productKeyword || "")}"
+    style="
+      width:100%;
+      max-width:420px;
+      padding:10px 12px;
+      border:1px solid #34445f;
+      border-radius:8px;
+      background:#ffffff;
+      color:#000000;
+      font-size:16px;
+    "
+  >
+
+  <button
+    type="button"
+    onclick="searchProductKeyword()"
+    style="
+      padding:10px 18px;
+      border:0;
+      border-radius:8px;
+      background:#2f80ed;
+      color:#fff;
+      font-weight:bold;
+      cursor:pointer;
+    "
+  >
+    SEARCH
+  </button>
+
+</div>
+`;
+
+  }
+
   const sizeMap = {};
 
   allData.forEach(function(row) {
@@ -2304,6 +2371,29 @@ function productPagerHtml(page, totalPages) {
 
   html += '</div>';
   return html;
+}
+
+function setProductKeyword(value) {
+  productKeyword = String(value || "").trim().toLowerCase();
+  window.productPage = 1;
+  renderProductTable();
+}
+
+function searchProductKeyword() {
+
+  const input =
+    document.getElementById(
+      "productKeywordInput"
+    );
+
+  productKeyword =
+    input
+      ? input.value.trim().toLowerCase()
+      : "";
+
+  window.productPage = 1;
+
+  renderProductTable();
 }
 
 function setProductSize(size) {
