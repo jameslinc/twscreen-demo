@@ -1913,9 +1913,10 @@ async function loadProductTableSetting(){
 
   window.productTableSetting = {};
 
-  const res = await fetch(
-    "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/product-table-setting"
-  );
+const res = await fetch(
+  "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/product-table-setting?web_id=" +
+  encodeURIComponent(currentWebId)
+);
 
   const json = await res.json();
   const rows = json.data || [];
