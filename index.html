@@ -1786,9 +1786,12 @@ html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
 const website =
   String(row.website || "").trim();
 
+const hasWebsite =
+  /^https?:\/\//i.test(website);
+
 let pnHtml = "";
 
-if (website) {
+if (hasWebsite) {
 
   pnHtml =
     '<a href="' + escapeAttr(website) + '" ' +
@@ -1806,7 +1809,6 @@ if (website) {
     '</a>';
 
 }
-
     const rowSelected =
       window.inquiryProductRows &&
       window.inquiryProductRows[idx] &&
