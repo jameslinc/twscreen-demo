@@ -1347,6 +1347,8 @@ async function loadLanguage() {
 
     document.documentElement.lang = pageLang;
 
+  console.log("LANG =", pageLang);
+
     const lang = json.lang || {};
     window.LANG = lang;
 
