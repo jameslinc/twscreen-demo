@@ -1320,6 +1320,7 @@ window.addEventListener("pageshow", function () {
       .replaceAll(">", "&gt;");
   }
   
+
 async function loadLanguage() {
 
   if (!currentWebId) return;
@@ -1334,6 +1335,17 @@ async function loadLanguage() {
     const json = await res.json();
 
     if (!json.ok) return;
+
+    let pageLang =
+      String(json.lang_code || "en")
+        .trim()
+        .toLowerCase();
+
+    if (pageLang === "jp") {
+      pageLang = "ja";
+    }
+
+    document.documentElement.lang = pageLang;
 
     const lang = json.lang || {};
     window.LANG = lang;
@@ -1354,6 +1366,22 @@ async function loadLanguage() {
 
       });
 
+    document
+      .querySelectorAll("[data-lang-placeholder]")
+      .forEach(function(el) {
+
+        const key =
+          el.getAttribute("data-lang-placeholder");
+
+        if (
+          key &&
+          lang[key] !== undefined
+        ) {
+          el.placeholder = lang[key];
+        }
+
+      });
+
   } catch (err) {
 
     console.log(
@@ -1363,6 +1391,8 @@ async function loadLanguage() {
 
   }
 }
+
+
 async function loadSeoKeyword() {
 
   if (!currentWebId) return;
