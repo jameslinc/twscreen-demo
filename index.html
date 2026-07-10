@@ -972,7 +972,9 @@ function getVisitorId() {
 const VISITOR_ID =
 getVisitorId();
 
-let currentWebId = 2153;
+let currentWebId =
+  Number(window.CURRENT_WEB_ID || 0);
+  
 let productKeyword = "";
 
 async function loadBuyerInfoFromServer() {
