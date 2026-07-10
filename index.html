@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="JP">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" /> 
@@ -18,7 +18,7 @@ rel="stylesheet">
 
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 
-  <title>PolScreen Technologies Sp. z o.o</title>
+  <title>Industrial LCD Display</title>
 <style>
     :root{
       --bg:#0b1220;
@@ -743,31 +743,56 @@ gap:15px;
 ">
 
   <div>
-    <label>会社</label>
-    <input id="company"
-           type="text"
-           placeholder="e.g. ASUS">
+  <label data-lang="rfq_company_label">
+  Company
+</label>
+
+<input
+  id="company"
+  type="text"
+  placeholder="e.g. Apple"
+  data-lang-placeholder="rfq_company_placeholder"
+>
+  </div>
+
+
+  <div>
+    <label data-lang="rfq_email_label">
+  Email
+</label>
+
+<input
+  id="email"
+  type="email"
+  placeholder="e.g. test@test.com"
+  data-lang-placeholder="rfq_email_placeholder"
+>
   </div>
 
   <div>
-    <label>メール</label>
-    <input id="email"
-           type="email"
-           placeholder="e.g. test@test.com">
+ <label data-lang="rfq_contact_label">
+  Contact Person
+</label>
+
+<input
+  id="ctt_person"
+  type="text"
+  placeholder="e.g. James"
+  data-lang-placeholder="rfq_contact_placeholder"
+>
   </div>
 
   <div>
-    <label>Osoba kontaktowa</label>
-    <input id="ctt_person"
-           type="text"
-           placeholder="e.g. James">
-  </div>
+  <label data-lang="rfq_tel_label">
+  Phone
+</label>
 
-  <div>
-    <label>電話</label>
-    <input id="tel"
-           type="text"
-           placeholder="e.g. +48 123 456 789">
+<input
+  id="tel"
+  type="text"
+  placeholder="e.g. +48 123 456 789"
+  data-lang-placeholder="rfq_tel_placeholder"
+>
   </div>
 
 </div>
@@ -777,8 +802,19 @@ gap:15px;
   </div>
 
   <div style="margin:8px 0;">
-    <label>述べる</label><br>
-    <textarea id="remark" placeholder="Your message" style="width:100%; padding:10px; min-height:180px;"></textarea>
+
+   <label data-lang="rfq_message_label">
+  Message
+</label>
+
+<textarea
+  id="remark"
+  placeholder="Your message"
+  data-lang-placeholder="rfq_message_placeholder"
+  style="width:100%;padding:10px;min-height:180px;"
+></textarea>
+
+
   </div>
 
 <div style="
@@ -786,46 +822,46 @@ margin-top:15px;
 font-size:14px;
 color:#ffffff;
 ">
-
 <label style="cursor:pointer;">
 
-<input
-  type="checkbox"
-  id="agree_privacy"
-  style="
-    width:auto;
-    margin-right:8px;
-    vertical-align:middle;
-  "
->
+  <input
+    type="checkbox"
+    id="agree_privacy"
+    style="
+      width:auto;
+      margin-right:8px;
+      vertical-align:middle;
+    "
+  >
 
-I agree to the
-<a href="#privacy"
-   style="color:#66d9ff;">
-Privacy Policy
-</a>
+  <a
+    href="#privacy"
+    style="color:#66d9ff;"
+    data-lang="rfq_privacy_text"
+  >
+    I agree to the Privacy Policy
+  </a>
 
 </label>
-
 </div>
 
   <div style="text-align:right;margin-top:15px;">
-
 <button
- type="button"
- onclick="sendData()"
- style="
- padding:12px 30px;
- background:#00bcd4;
- color:white;
- border:0;
- border-radius:8px;
- font-weight:bold;
- cursor:pointer;
- ">
- SEND RFQ
+  type="button"
+  onclick="sendData()"
+  data-lang="rfq_send_button"
+  style="
+    padding:12px 30px;
+    background:#00bcd4;
+    color:white;
+    border:0;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+  "
+>
+  SEND RFQ
 </button>
-
 </div>
 
 
@@ -1005,10 +1041,11 @@ function writeVisitorLog(eventType, data) {
 async function sendData() {
 
  if (
- !document.getElementById("agree_privacy").checked
+  !document.getElementById("agree_privacy").checked
 ){
   alert(
-   "Please agree to Privacy Policy."
+    window.LANG?.rfq_privacy_required ||
+    "Please agree to the Privacy Policy."
   );
   return;
 }
@@ -1170,6 +1207,7 @@ loadInquiryCart();
   await checkEditorTrust();
   await loadProductTableSetting();
   await loadProductTable();
+  await loadLanguage();
  
 
 
@@ -1224,6 +1262,7 @@ await loadCompanyInfo();
 await checkEditorTrust();
 await loadProductTableSetting();
 await loadProductTable();
+await loadLanguage();
 
 renderOtherProductTypeTables();
 
@@ -1281,6 +1320,49 @@ window.addEventListener("pageshow", function () {
       .replaceAll(">", "&gt;");
   }
   
+async function loadLanguage() {
+
+  if (!currentWebId) return;
+
+  try {
+
+    const res = await fetch(
+      "https://web-language.lcdscreentek.workers.dev/api/web-language?web_id=" +
+      encodeURIComponent(currentWebId)
+    );
+
+    const json = await res.json();
+
+    if (!json.ok) return;
+
+    const lang = json.lang || {};
+    window.LANG = lang;
+
+    document
+      .querySelectorAll("[data-lang]")
+      .forEach(function(el) {
+
+        const key =
+          el.getAttribute("data-lang");
+
+        if (
+          key &&
+          lang[key] !== undefined
+        ) {
+          el.textContent = lang[key];
+        }
+
+      });
+
+  } catch (err) {
+
+    console.log(
+      "Load language failed:",
+      err
+    );
+
+  }
+}
 async function loadSeoKeyword() {
 
   if (!currentWebId) return;
@@ -1295,6 +1377,14 @@ async function loadSeoKeyword() {
     const json = await res.json();
 
     if (json.ok && json.data) {
+     
+    const d = json.data;
+
+document.title =
+  d.company_name_long ||
+  d.company_name_short ||
+  "Industrial LCD Display";
+
 
      // =========================
 // description
@@ -1427,9 +1517,17 @@ async function loadCompanyInfo() {
     //alert(JSON.stringify(json.data, null, 2));
 
     if (json.ok && json.data) {
-      
+     
 const d = json.data;
 
+// =========================
+// title
+// =========================
+document.title =
+  d.company_name_long ||
+  d.company_name_short ||
+  "Industrial LCD Display";
+ 
 const footerName =
   document.getElementById("footerCompanyName");
 
@@ -1565,6 +1663,16 @@ function renderProductTable() {
   if (!box) return;
 
   const allData = window.panelRows || [];
+
+  
+  if (allData.length === 0) {
+    box.innerHTML =
+      '<div id="otherProductTypeBox" ' +
+      'style="margin-top:22px;margin-bottom:22px;"></div>';
+
+    renderOtherProductTypeTables();
+    return;
+  }
 
 
 
