@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="pl">
+<html lang="JP">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> 
 
 <meta name="description" content="Industrial LCD panel supplier">
 <meta name="keywords" content="LCD panel, industrial display, touch panel">
@@ -743,14 +743,14 @@ gap:15px;
 ">
 
   <div>
-    <label>Firma</label>
+    <label>会社</label>
     <input id="company"
            type="text"
            placeholder="e.g. ASUS">
   </div>
 
   <div>
-    <label>e-Mail</label>
+    <label>メール</label>
     <input id="email"
            type="email"
            placeholder="e.g. test@test.com">
@@ -764,7 +764,7 @@ gap:15px;
   </div>
 
   <div>
-    <label>Numer telefonu</label>
+    <label>電話</label>
     <input id="tel"
            type="text"
            placeholder="e.g. +48 123 456 789">
@@ -777,7 +777,7 @@ gap:15px;
   </div>
 
   <div style="margin:8px 0;">
-    <label>Wymagania</label><br>
+    <label>述べる</label><br>
     <textarea id="remark" placeholder="Your message" style="width:100%; padding:10px; min-height:180px;"></textarea>
   </div>
 
@@ -888,42 +888,14 @@ width:100%;
     </div>
   </section>
 
-<section id="privacy">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-
-<div class="container" style="
-font-family:'Bebas Neue',sans-serif;
-font-size:12px;
-letter-spacing:3px;
-margin:0 auto;
-text-align:center;
-width:100%;
-">
- 
+<section id="privacy" class="anchor">
+  <div class="container" id="privacyPolicyBox">
+  </div>
+</section>
 
 
-<h2>Privacy Policy</h2>
 
-<p>
-We collect contact information submitted through RFQ forms,
-including company name, contact person, email address,
-phone number and inquiry details.
-</p>
 
-<p>
-The information is used solely for quotation,
-technical support and customer communication.
-</p>
-
-<p>
-We do not sell or share personal information with third parties.
-</p>
-
-<p>
-Visitors may contact us to request modification or deletion
-of their personal data.
-</p>
- </div>
 </section>
 
  
@@ -963,7 +935,7 @@ function getVisitorId() {
 const VISITOR_ID =
 getVisitorId();
 
-let currentWebId = 2153;
+let currentWebId = 3397;
 let productKeyword = "";
 
 async function loadBuyerInfoFromServer() {
@@ -1070,7 +1042,7 @@ async function sendData() {
     "&visitor_id=" + encodeURIComponent(VISITOR_ID);
 
   msg.style.color = "black";
-  msg.innerText = "Sending...";
+  msg.innerText = "Sending..."; 
 
   try {
     const res = await fetch(url);
@@ -1109,13 +1081,13 @@ async function sendData() {
       renderOtherProductTypeTables();
 
     } else {
-      msg.style.color = "red";
-      msg.innerText = "Send failed"; // + text;
+  msg.style.color = "red";
+  msg.innerText = "Send failed\n\n" + text;
     }
   } catch (err) {
-    msg.style.color = "red";
-    msg.innerText = "Error"; // + err.message;
-  }
+  msg.style.color = "red";
+  msg.innerText = "Error\n\n" + err.message;
+}
 }
 
 async function loadWebCont() {
@@ -1474,7 +1446,13 @@ document.title =
   "";
 
 
-   
+ const privacyBox =
+  document.getElementById("privacyPolicyBox");
+
+if (privacyBox) {
+  privacyBox.innerHTML =
+    d.company_private_policy || "";
+}  
       
 
 
@@ -1511,8 +1489,13 @@ document.title =
 }
 
   } catch (err) {
-    box.innerHTML = "Load company info failed: " + err.message;
+  console.log("Load company info failed:", err);
+
+  if (box) {
+    box.innerHTML =
+      "Load company info failed: " + err.message;
   }
+}
 }function escapeHtml(str) {
   return String(str || "")
     .replaceAll("&", "&amp;")
@@ -1595,7 +1578,7 @@ if (pageSize === 0) {
   return;
 }
 
- let filtered = allData;
+  let filtered = allData;
 
   if (allData.length > 13) {
 
@@ -1734,7 +1717,7 @@ html += productPagerHtml(page, totalPages);
 html += '</div>';
 
 */
-
+/*
 html += '<div style="display:flex;justify-content:space-between;align-items:center;margin:15px 0;">';
 
 html += '<div style="flex:1;text-align:center;">';
@@ -1746,7 +1729,7 @@ html += '<a href="#rfq" style="color:#ffcc66;text-decoration:underline;">After m
 html += '</div>';
 
 html += '</div>';
-
+*/
   if (!pageRows.length) {
     html += '<div style="padding:20px;background:#fff;color:#000;border-radius:12px;">No products.</div>';
     box.innerHTML = html;
@@ -1813,7 +1796,7 @@ if (hasWebsite) {
   pnHtml =
     '<a href="javascript:void(0)" onclick="toggleProductDetail(this)" data-index="' + idx + '" ' +
     'style="color:#0066ff;text-decoration:underline;font-weight:bold;font-size:18px;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">' +
-    escapeHtml(row.panel_model || "") +
+   escapeHtml(row.panel_model || "") +
     '</a>';
 
 }
@@ -1893,6 +1876,15 @@ html += '<td style="padding:8px;border:1px solid #ccc;">' +
 html += '</table>';
 html += '</div>';
 
+if (allData.length > 13) {
+
+  html += '<div style="text-align:center;margin:15px 0;">';
+  html += productPagerHtml(page, totalPages);
+  html += '</div>';
+
+}
+
+
 html += '<div id="otherProductTypeBox" style="margin-top:22px;margin-bottom:22px;"></div>';
 
 html += '<div style="clear:both;margin-top:18px;color:#cfe3ff;font-size:13px;">';
@@ -1913,7 +1905,7 @@ async function loadProductTableSetting(){
 
   window.productTableSetting = {};
 
-const res = await fetch(
+  const res = await fetch(
   "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/product-table-setting?web_id=" +
   encodeURIComponent(currentWebId)
 );
@@ -2497,6 +2489,7 @@ async function toggleProductDetail(a) {
     encodeURIComponent(rowId);
 
  
+
   const editBar = "";
 
   detailTd.innerHTML =
@@ -3084,15 +3077,44 @@ function getCurrentWebId() {
 
 function showMemberLogin() {
 
-  const keycode =
-    prompt("Input Keycode");
+  const txt = prompt("Input Keycode");
 
-  if (!keycode) return;
+  if (!txt) return;
 
-  const url =
-    "https://editallapi.lcdscreentek.workers.dev/" +
-    "?keycode=" + encodeURIComponent(keycode) +
-    "&web_id=" + encodeURIComponent(getCurrentWebId());
+  let keycode = txt.trim();
+  let section = "";
+
+  if (txt.includes("#")) {
+
+    const arr = txt.split("#");
+
+    keycode = arr[0].trim();
+
+    section =
+      String(arr[1] || "")
+      .trim()
+      .toLowerCase();
+
+  }
+
+  let url;
+
+  if (section) {
+
+    url =
+      "https://section.lcdscreentek.workers.dev/api/web-cont" +
+      "?web_id=" + encodeURIComponent(getCurrentWebId()) +
+      "&keycode=" + encodeURIComponent(keycode) +
+      "&section=" + encodeURIComponent(section);
+
+  } else {
+
+    url =
+      "https://editallapi.lcdscreentek.workers.dev/" +
+      "?web_id=" + encodeURIComponent(getCurrentWebId()) +
+      "&keycode=" + encodeURIComponent(keycode);
+
+  }
 
   location.href = url;
 }
