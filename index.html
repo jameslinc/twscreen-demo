@@ -1816,6 +1816,102 @@ const normalRows = filtered.slice(
 );
 
 const pageRows = selectedRows.concat(normalRows);
+  // =========================
+// PANEL 欄位設定
+// =========================
+
+// =========================
+// PANEL 欄位設定
+// =========================
+
+const allPanelCols =
+  window.productTableSetting &&
+  window.productTableSetting.panel
+    ? window.productTableSetting.panel
+    : [];
+// =========================
+// PANEL TABLE_TITLE
+// 取第一個有文字的 table_title
+// =========================
+
+const panelTitleRow =
+  allPanelCols.find(function(col) {
+    return String(col.table_title || "").trim() !== "";
+  });
+
+const panelTableTitle =
+  panelTitleRow
+    ? String(panelTitleRow.table_title || "").trim()
+    : "";
+  
+  console.log(
+  "目前 currentWebId =",
+  currentWebId
+);
+
+console.log(
+  "全部 PRODUCT_TABLE_SETTING =",
+  window.productTableSetting
+);
+
+console.log(
+  "PANEL 設定 =",
+  allPanelCols
+);
+
+// 如果 PRODUCT_TABLE_SETTING 裡有 panel 設定，
+// 而且所有 ROW 的 is_show 都是 0，
+// 整個 PANEL 區塊不顯示
+if (
+  allPanelCols.length > 0 &&
+  allPanelCols.every(function(col) {
+    return Number(col.is_show || 0) === 0;
+  })
+) {
+  box.innerHTML =
+    '<div id="otherProductTypeBox" ' +
+    'style="margin-top:22px;margin-bottom:22px;"></div>';
+
+  renderOtherProductTypeTables();
+  return;
+}
+
+// 只保留 is_show = 1 的欄位
+let panelCols =
+  allPanelCols.filter(function(col) {
+    return Number(col.is_show ?? 1) === 1;
+  });
+
+// PRODUCT_TABLE_SETTING 完全沒有 panel 設定時，
+// 才使用預設欄位
+if (!allPanelCols.length) {
+  panelCols = [
+    {
+      field_name: "brand",
+      field_label: "Brand"
+    },
+    {
+      field_name: "panel_model",
+      field_label: "Model"
+    },
+    {
+      field_name: "size",
+      field_label: "Size"
+    },
+    {
+      field_name: "resolution",
+      field_label: "Resolution"
+    },
+    {
+      field_name: "brightness",
+      field_label: "Brightness"
+    },
+    {
+      field_name: "signal_interface",
+      field_label: "Interface"
+    }
+  ];
+}
 
   window.inquiryProductRows = pageRows.map(function(row) {
     const productKey =
@@ -1840,9 +1936,14 @@ const pageRows = selectedRows.concat(normalRows);
     };
   });
 
-  let html = "";
+ let html = "";
 
-  html += productSizeFilterHtml(selectedSize);
+// TABLE_TITLE 有文字才輸出
+if (panelTableTitle) {
+  html += panelTableTitle;
+}
+
+html += productSizeFilterHtml(selectedSize);
 
 /*
   html += '<div class="product-info-row">';
@@ -1855,9 +1956,9 @@ const pageRows = selectedRows.concat(normalRows);
   html += '<div id="rfqNotice" class="rfq-complete-notice"><a href="#rfq" style="color:#ffcc66;text-decoration:underline;">After making your selections, please complete the RFQ FORM.</a></div>';
   html += '</div>';
 
-html += '<div style="text-align:center;margin:15px 0;">';
-html += productPagerHtml(page, totalPages);
-html += '</div>';
+ html += '<div style="text-align:center;margin:15px 0;">';
+ html += productPagerHtml(page, totalPages);
+ html += '</div>';
 
 */
 /*
@@ -1882,27 +1983,45 @@ html += '</div>';
   html += '<div style="overflow-x:auto;">';
   html += '<table style="width:100%;border-collapse:collapse;background:#fff;color:#000;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">';
 
-  html += '<thead>';
- html += '<tr style="background:#222;color:#fff;font-family:\'Barlow Condensed\',sans-serif;font-size:24px;letter-spacing:1px;">';
+html += '<thead>';
 
- /*
-// SM_ICON
-html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
+html +=
+  '<tr style="' +
+  'background:#222;' +
+  'color:#fff;' +
+  'font-family:\'Barlow Condensed\',sans-serif;' +
+  'font-size:24px;' +
+  'letter-spacing:1px;' +
+  '">';
 
-// PIC_LINK
-html += '<th style="padding:10px;border:1px solid #ccc;"></th>';
-*/
+panelCols.forEach(function(col) {
 
+  let thStyle =
+    'padding:10px;' +
+    'border:1px solid #ccc;';
 
-  html += '<th style="padding:10px;border:1px solid #ccc;">Brand</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">panel_model</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">Size</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">Resolution</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">Brightness</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">signal_interface</th>';
-  html += '<th style="padding:10px;border:1px solid #ccc;">Inquiry</th>';
-  html += '</tr>';
-  html += '</thead>';
+  if (col.width) {
+    thStyle +=
+      'width:' + escapeAttr(col.width) + ';';
+  }
+
+  html +=
+    '<th style="' + thStyle + '">' +
+    escapeHtml(
+      col.field_label ||
+      col.field_name ||
+      ""
+    ) +
+    '</th>';
+});
+
+html +=
+  '<th style="padding:10px;border:1px solid #ccc;">' +
+  'Inquiry' +
+  '</th>';
+
+html += '</tr>';
+html += '</thead>'; 
   html += '<tbody>';
 
   pageRows.forEach(function(row, idx) {
@@ -1987,19 +2106,98 @@ html += '</td>';
 // brand
 // =========================
 
-html += '<td style="padding:8px;border:1px solid #ccc;">' +
-  escapeHtml(row.brand || "") +
-  '</td>';
+panelCols.forEach(function(col) {
+
+  const fieldName =
+    String(col.field_name || "").trim();
+
+  let value =
+    row[fieldName] ?? "";
+
+  let tdStyle =
+    'padding:8px;' +
+    'border:1px solid #ccc;';
+
+  if (col.width) {
+    tdStyle +=
+      'width:' + escapeAttr(col.width) + ';';
+  }
+
+  html += '<td style="' + tdStyle + '">';
+
+  // =========================
+  // panel_model
+  // =========================
+  if (fieldName === "panel_model") {
+
+    html += pnHtml;
+
     if (rowSelected) {
-      pnHtml += '<span class="product-selected-badge">RFQ</span>';
+      html +=
+        '<span class="product-selected-badge">RFQ</span>';
     }
 
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + pnHtml + '</td>';
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(normalizeSize(row.size || "")) + '"</td>';
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.resolution || "") + '</td>';
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.brightness || "") + '</td>';
-    html += '<td style="padding:8px;border:1px solid #ccc;">' + escapeHtml(row.signal_interface || "") + '</td>';
+  // =========================
+  // 圖片欄位
+  // =========================
+  } else if (
+    fieldName === "pic_link" ||
+    fieldName === "sm_icon"
+  ) {
 
+    if (value) {
+
+      let imgStyle =
+        'max-width:' + escapeAttr(col.width || "180px") + ';' +
+        'max-height:' + escapeAttr(col.height || "120px") + ';' +
+        'width:auto;' +
+        'height:auto;' +
+        'object-fit:contain;' +
+        'display:block;' +
+        'margin:0 auto;' +
+        'border-radius:12px;';
+
+      html +=
+        '<img src="' +
+        escapeAttr(value) +
+        '" style="' +
+        imgStyle +
+        '">';
+    }
+
+  // =========================
+  // Size
+  // =========================
+  } else if (fieldName === "size") {
+
+    const sizeText =
+      normalizeSize(value || "");
+
+    html += escapeHtml(sizeText);
+
+    if (sizeText) {
+      html += '&quot;';
+    }
+
+  // =========================
+  // para_html 不直接顯示 HTML
+  // =========================
+  } else if (fieldName === "para_html") {
+
+    html += value
+      ? '<span style="color:#666;">DETAIL</span>'
+      : "";
+
+  // =========================
+  // 一般欄位
+  // =========================
+  } else {
+
+    html += escapeHtml(value);
+  }
+
+  html += '</td>';
+});
     html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;white-space:nowrap;">';
     html += '<input type="text" class="inquiry-qty" placeholder="QTY" value="">';
     html += '<button type="button" class="inquiry-small-btn" ';
@@ -2018,7 +2216,7 @@ html += '<td style="padding:8px;border:1px solid #ccc;">' +
   html += '</tbody>';
 html += '</table>';
 html += '</div>';
-
+/*
 if (allData.length > 13) {
 
   html += '<div style="text-align:center;margin:15px 0;">';
@@ -2026,15 +2224,15 @@ if (allData.length > 13) {
   html += '</div>';
 
 }
-
+*/
 
 html += '<div id="otherProductTypeBox" style="margin-top:22px;margin-bottom:22px;"></div>';
 
 html += '<div style="clear:both;margin-top:18px;color:#cfe3ff;font-size:13px;">';
 
+html += 'Total: ' + totalRows + ' item(s).';
 
-  html += 'Total: ' + totalRows + ' item(s). Page ' + page + ' / ' + totalPages + '. ' + pageSize + ' item(s) per page.';
-  html += '</div>';
+html += '</div>';
 
   box.innerHTML = html;
 
@@ -2044,51 +2242,140 @@ renderOtherProductTypeTables();
 }
 
 
-async function loadProductTableSetting(){
+async function loadProductTableSetting() {
 
   window.productTableSetting = {};
 
-  const res = await fetch(
-  "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/product-table-setting?web_id=" +
-  encodeURIComponent(currentWebId)
-);
+  try {
 
-  const json = await res.json();
-  const rows = json.data || [];
+    const res = await fetch(
+      "https://lcdscreentek-demo-slide-banner.lcdscreentek.workers.dev/api/product-table-setting?web_id=" +
+      encodeURIComponent(currentWebId)
+    );
 
-  rows.forEach(function(col){
-
-    const type =
-      String(col.product_type || "")
-      .toLowerCase()
-      .trim();
-
-    if (!window.productTableSetting[type]) {
-      window.productTableSetting[type] = [];
+    if (!res.ok) {
+      throw new Error(
+        "PRODUCT_TABLE_SETTING API HTTP " +
+        res.status
+      );
     }
 
-    window.productTableSetting[type].push(col);
-  });
-  
-  Object.keys(window.productTableSetting).forEach(function(type){
+    const json = await res.json();
+    const rows = Array.isArray(json.data)
+      ? json.data
+      : [];
 
-  window.productTableSetting[type].sort(function(a, b){
-    return Number(a.sort_order || 0) - Number(b.sort_order || 0);
-  });
+    console.log(
+      "PRODUCT_TABLE_SETTING API 回傳：",
+      json
+    );
 
-});
+    console.log(
+      "PRODUCT_TABLE_SETTING rows：",
+      rows
+    );
 
+    rows.forEach(function(col) {
+
+      const type =
+        String(col.product_type || "")
+          .toLowerCase()
+          .trim();
+
+      if (!type) {
+        return;
+      }
+
+      if (!window.productTableSetting[type]) {
+        window.productTableSetting[type] = [];
+      }
+
+      window.productTableSetting[type].push(col);
+    });
+
+    Object.keys(
+      window.productTableSetting
+    ).forEach(function(type) {
+
+      window.productTableSetting[type].sort(
+        function(a, b) {
+          return (
+            Number(a.sort_order || 0) -
+            Number(b.sort_order || 0)
+          );
+        }
+      );
+    });
+
+  } catch (err) {
+
+    console.error(
+      "loadProductTableSetting failed:",
+      err
+    );
+
+    window.productTableSetting = {};
+  }
 }
 
-async function loadOtherProductTypeData(){
+
+async function loadOtherProductTypeData() {
 
   window.productTypeData = {};
 
-  const productTypes = [
-    "controller",
-    "touch",
-    "solution"
-  ];
+  // =========================
+  // 自動收集所有 product_type
+  // =========================
+
+  const productTypeSet = new Set();
+
+  // 1. 從 PRODUCT_TABLE_SETTING 取得產品類型
+  Object.keys(
+    window.productTableSetting || {}
+  ).forEach(function(type) {
+
+    const normalizedType =
+      String(type || "")
+        .trim()
+        .toLowerCase();
+
+    if (
+      normalizedType &&
+      normalizedType !== "panel"
+    ) {
+      productTypeSet.add(normalizedType);
+    }
+  });
+
+  // 2. 從 WEB_PANEL API 已載入的資料取得產品類型
+  // 即使該類型尚未建立 PRODUCT_TABLE_SETTING，
+  // 也可以使用預設欄位顯示
+  (window.productAllRows || []).forEach(function(row) {
+
+    const normalizedType =
+      String(row.product_type || "")
+        .trim()
+        .toLowerCase();
+
+    if (
+      normalizedType &&
+      normalizedType !== "panel"
+    ) {
+      productTypeSet.add(normalizedType);
+    }
+  });
+
+  const productTypes =
+    Array.from(productTypeSet);
+
+  console.log(
+    "自動載入的 product_type：",
+    productTypes
+  );
+
+  // =========================
+  // 逐一讀取每種產品
+  // =========================
 
   for (const type of productTypes) {
 
@@ -2101,20 +2388,35 @@ async function loadOtherProductTypeData(){
         encodeURIComponent(type)
       );
 
+      if (!res.ok) {
+        throw new Error(
+          "HTTP " + res.status
+        );
+      }
+
       const json = await res.json();
-      const rows = json.data || [];
+
+      const rows =
+        Array.isArray(json.data)
+          ? json.data
+          : [];
 
       window.productTypeData[type] = rows;
 
-    } catch(err) {
-      console.log("load product type failed:", type, err);
+    } catch (err) {
+
+      console.log(
+        "load product type failed:",
+        type,
+        err
+      );
+
+      window.productTypeData[type] = [];
     }
   }
 
   renderOtherProductTypeTables();
 }
-
-
 
 function renderOtherProductTypeTables(){
 
@@ -2128,13 +2430,61 @@ function renderOtherProductTypeTables(){
 
   let html = '';
 
-  Object.keys(productTypeData).forEach(function(type){
+Object.keys(productTypeData).forEach(function(type){
 
-   let rows =
-  productTypeData[type] || [];
+  let rows =
+    productTypeData[type] || [];
 
-if (!rows.length) return;
+  if (!rows.length) return;
 
+  // =========================
+  // 取得這個 product_type 的設定
+  // =========================
+  const allCols =
+    window.productTableSetting &&
+    window.productTableSetting[type]
+      ? window.productTableSetting[type]
+      : [];
+
+  // 有設定資料，但所有欄位 is_show 都是 0，
+  // 整個 product_type 不顯示
+  if (
+    allCols.length > 0 &&
+    allCols.every(function(col) {
+      return Number(col.is_show || 0) === 0;
+    })
+  ) {
+    return;
+  }
+
+  // 只留下需要顯示的欄位
+  let cols =
+    allCols.filter(function(col) {
+      return Number(col.is_show ?? 1) === 1;
+    });
+
+  // 完全沒有 PRODUCT_TABLE_SETTING 設定時，
+  // 才使用預設欄位
+  if (!allCols.length) {
+    cols = [
+      {
+        field_name: "brand",
+        field_label: "Brand"
+      },
+      {
+        field_name: "panel_model",
+        field_label: "Model"
+      },
+      {
+        field_name: "signal_interface",
+        field_label: "Interface"
+      }
+    ];
+  }
+
+
+
+  
 rows = rows.slice().sort(function(a, b){
 
   const keyA =
@@ -2157,27 +2507,32 @@ rows = rows.slice().sort(function(a, b){
   return 0;
 });
 
-    html += '<h2 style="color:#fff;margin-top:35px;">' +
-      escapeHtml(type.toUpperCase()) +
-      '</h2>';
+    // =========================
+// TABLE_TITLE
+// 同一個 product_type 取第一個有文字的值
+// =========================
 
+const titleRow =
+  allCols.find(function(col) {
+    return String(col.table_title || "").trim() !== "";
+  });
+
+const tableTitle =
+  titleRow
+    ? String(titleRow.table_title || "").trim()
+    : "";
+
+// 有文字才顯示標題
+
+if (tableTitle) {
+  html += tableTitle;
+}
+  
     html += '<div style="overflow-x:auto;">';
 
     html += '<table style="width:100%;border-collapse:collapse;background:#fff;color:#000;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;">';
 
-  let cols =
-  window.productTableSetting &&
-  window.productTableSetting[type]
-    ? window.productTableSetting[type]
-    : [];
-
-if (!cols.length) {
-  cols = [
-    { field_name: "brand", field_label: "Brand" },
-    { field_name: "panel_model", field_label: "Model" },
-    { field_name: "signal_interface", field_label: "Interface" }
-  ];
-}
+ 
 
 
 html += '<tr style="background:#222;color:#fff;font-size:24px;">';
@@ -2618,7 +2973,17 @@ async function toggleProductDetail(a) {
   detailTr.className = "product-detail-row";
 
   const detailTd = document.createElement("td");
-  detailTd.colSpan = 7;
+const panelCols =
+  window.productTableSetting &&
+  window.productTableSetting.panel
+    ? window.productTableSetting.panel.filter(function(col) {
+        return Number(col.is_show ?? 1) === 1;
+      })
+    : [];
+
+detailTd.colSpan =
+  Math.max(panelCols.length, 6) + 1;
+  
 
   const paraHtml = String(data.para_html || "").trim();
   const rowId = String(data.id || "").trim();
