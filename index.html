@@ -1208,9 +1208,10 @@ loadInquiryCart();
   await loadSeoKeyword();
   await loadCompanyInfo();
   await checkEditorTrust();
+       await loadLanguage();
   await loadProductTableSetting();
   await loadProductTable();
-  await loadLanguage();
+ 
  
 
 
@@ -1263,9 +1264,10 @@ await loadCompanyBrief();
 await loadSeoKeyword();
 await loadCompanyInfo();
 await checkEditorTrust();
+    await loadLanguage();
 await loadProductTableSetting();
 await loadProductTable();
-await loadLanguage();
+
 
 renderOtherProductTypeTables();
 
@@ -1554,6 +1556,7 @@ async function loadCompanyInfo() {
     if (json.ok && json.data) {
      
 const d = json.data;
+      window.companyInfo = d;
 
 // =========================
 // title
@@ -2760,19 +2763,27 @@ function toggleOtherProductInquiryFromButton(btn){
   renderOtherProductTypeTables();
 }
 
-function productSizeFilterHtml(activeSize) {
+   function productSizeFilterHtml(activeSize) {
   const allData = window.productAllRows || [];
 
   // 超過 13 個，改用關鍵字搜尋
   if (allData.length > 13) {
-    
+
+    const searchPlaceholder =
+      window.LANG?.search_placeholder ||
+      "Search model / brand / size / resolution";
+
+    const searchButtonText =
+      window.LANG?.btn_search ||
+      "SEARCH";
+
     return `
 <div style="display:flex;gap:8px;margin:12px 0 14px;">
 
   <input
     id="productKeywordInput"
     type="text"
-    placeholder="Search model / brand / size / resolution"
+    placeholder="${escapeAttr(searchPlaceholder)}"
     value="${escapeAttr(productKeyword || "")}"
     style="
       width:100%;
@@ -2799,7 +2810,7 @@ function productSizeFilterHtml(activeSize) {
       cursor:pointer;
     "
   >
-    SEARCH
+    ${escapeHtml(searchButtonText)}
   </button>
 
 </div>
@@ -2811,6 +2822,7 @@ function productSizeFilterHtml(activeSize) {
 
   allData.forEach(function(row) {
     const size = normalizeSize(row.size || "");
+
     if (size) {
       sizeMap[size] = true;
     }
@@ -2829,17 +2841,28 @@ function productSizeFilterHtml(activeSize) {
 
   let html = '<div class="product-azbar">';
 
-  html += '<button type="button" class="' + (activeSize === "" ? "active" : "") + '" onclick="setProductSize(\'\')">ALL SIZE</button>';
+  html +=
+    '<button type="button" class="' +
+    (activeSize === "" ? "active" : "") +
+    '" onclick="setProductSize(\'\')">ALL SIZE</button>';
 
   sizes.forEach(function(size) {
-    html += '<button type="button" class="' + (activeSize === size ? "active" : "") + '" onclick="setProductSize(\'' + escapeJs(size) + '\')">' + escapeHtml(size) + '&quot;</button>';
+    html +=
+      '<button type="button" class="' +
+      (activeSize === size ? "active" : "") +
+      '" onclick="setProductSize(\'' +
+      escapeJs(size) +
+      '\')">' +
+      escapeHtml(size) +
+      '&quot;</button>';
   });
 
   html += '</div>';
+
   return html;
 }
 
-function normalizeSize(v) {
+   function normalizeSize(v) {
   return String(v || "")
     .trim()
     .replace(/["]/g, "")
@@ -2847,33 +2870,15 @@ function normalizeSize(v) {
     .trim();
 }
 
-function escapeJs(v) {
+   /* 加回這一段 */
+function normalizeSize(v) {
   return String(v || "")
-    .replaceAll("\\", "\\\\")
-    .replaceAll("'", "\\'");
+    .trim()
+    .replace(/["]/g, "")
+    .replace(/inch/ig, "")
+    .trim();
 }
-
-function productPagerHtml(page, totalPages) {
-  if (totalPages <= 1) return "";
-
-  let html = '<div class="product-pager">';
-
-  if (page > 1) {
-    html += '<button type="button" onclick="setProductPage(' + (page - 1) + ')">Prev</button>';
-  }
-
-  for (let i = 1; i <= totalPages; i++) {
-    html += '<button type="button" class="' + (i === page ? "active" : "") + '" onclick="setProductPage(' + i + ')">' + i + '</button>';
-  }
-
-  if (page < totalPages) {
-    html += '<button type="button" onclick="setProductPage(' + (page + 1) + ')">Next</button>';
-  }
-
-  html += '</div>';
-  return html;
-}
-
+   
 function setProductKeyword(value) {
   productKeyword = String(value || "").trim().toLowerCase();
   window.productPage = 1;
