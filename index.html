@@ -1632,7 +1632,20 @@ if (privacyBox) {
       "Load company info failed: " + err.message;
   }
 }
-}function escapeHtml(str) {
+}
+
+   function langText(key, fallback) {
+  const value =
+    window.LANG &&
+    window.LANG[key] !== undefined
+      ? String(window.LANG[key]).trim()
+      : "";
+
+  return value || fallback;
+}
+   
+   
+function escapeHtml(str) {
   return String(str || "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -1978,7 +1991,12 @@ html += '</div>';
 html += '</div>';
 */
   if (!pageRows.length) {
-    html += '<div style="padding:20px;background:#fff;color:#000;border-radius:12px;">No products.</div>';
+    html +=
+  '<div style="padding:20px;background:#fff;color:#000;border-radius:12px;">' +
+  escapeHtml(
+    langText("no_products", "No products.")
+  ) +
+  '</div>';
     box.innerHTML = html;
     return;
   }
@@ -2020,7 +2038,9 @@ panelCols.forEach(function(col) {
 
 html +=
   '<th style="padding:10px;border:1px solid #ccc;">' +
-  'Inquiry' +
+  escapeHtml(
+    langText("table_inquiry", "Inquiry")
+  ) +
   '</th>';
 
 html += '</tr>';
@@ -2136,8 +2156,12 @@ panelCols.forEach(function(col) {
     html += pnHtml;
 
     if (rowSelected) {
-      html +=
-        '<span class="product-selected-badge">RFQ</span>';
+     html +=
+  '<span class="product-selected-badge">' +
+  escapeHtml(
+    langText("rfq_badge", "RFQ")
+  ) +
+  '</span>';
     }
 
   // =========================
@@ -2201,17 +2225,53 @@ panelCols.forEach(function(col) {
 
   html += '</td>';
 });
-    html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;white-space:nowrap;">';
-    html += '<input type="text" class="inquiry-qty" placeholder="QTY" value="">';
-    html += '<button type="button" class="inquiry-small-btn" ';
-    html += 'data-index="' + idx + '" ';
-    html += 'data-in-cart="0" ';
-    html += 'onclick="toggleInquiryFromButton(this)">';
-    html += 'ADD TO RFQ';
-    html += '</button>';
-    html += '<div class="inquiry-qty-error">QTY MUST &gt; 0</div>';
-    html += '<div class="inquiry-exists-error" style="display:none;margin-top:4px;font-size:11px;color:#c62828;line-height:1.2;">Already exists</div>';
-    html += '</td>';
+html +=
+  '<td style="padding:8px;border:1px solid #ccc;text-align:center;white-space:nowrap;">';
+
+html +=
+  '<input type="text" ' +
+  'class="inquiry-qty" ' +
+  'placeholder="' +
+  escapeAttr(
+    langText("qty_placeholder", "QTY")
+  ) +
+  '" value="">';
+
+html +=
+  '<button type="button" ' +
+  'class="inquiry-small-btn' +
+  (rowSelected ? ' delete' : '') +
+  '" ';
+
+html += 'data-index="' + idx + '" ';
+html += 'data-in-cart="' + (rowSelected ? '1' : '0') + '" ';
+html += 'onclick="toggleInquiryFromButton(this)">';
+
+html += escapeHtml(
+  rowSelected
+    ? langText("btn_delete_rfq", "DELETE RFQ")
+    : langText("btn_add_to_rfq", "ADD TO RFQ")
+);
+
+html += '</button>';
+
+html +=
+  '<div class="inquiry-qty-error">' +
+  escapeHtml(
+    langText("qty_error", "QTY MUST > 0")
+  ) +
+  '</div>';
+
+html +=
+  '<div class="inquiry-exists-error" ' +
+  'style="display:none;margin-top:4px;font-size:11px;color:#c62828;line-height:1.2;">' +
+  escapeHtml(
+    langText("already_exists", "Already exists")
+  ) +
+  '</div>';
+
+html += '</td>';
+    
 
     html += '</tr>';
   });
@@ -2233,7 +2293,17 @@ html += '<div id="otherProductTypeBox" style="margin-top:22px;margin-bottom:22px
 
 html += '<div style="clear:both;margin-top:18px;color:#cfe3ff;font-size:13px;">';
 
-html += 'Total: ' + totalRows + ' item(s).';
+html +=
+  escapeHtml(
+    langText("total_items", "Total")
+  ) +
+  ': ' +
+  totalRows +
+  ' ' +
+  escapeHtml(
+    langText("items", "item(s)")
+  ) +
+  '.';
 
 html += '</div>';
 
@@ -2556,7 +2626,12 @@ cols.forEach(function(col){
 
 });
 
-html += '<th style="padding:10px;border:1px solid #ccc;">Inquiry</th>';
+html +=
+  '<th style="padding:10px;border:1px solid #ccc;">' +
+  escapeHtml(
+    langText("table_inquiry", "Inquiry")
+  ) +
+  '</th>';
 html += '</tr>';
 
     rows.forEach(function(row, i){
@@ -2629,7 +2704,11 @@ html += '<td style="' + tdStyle + '">';
 
   if (rowSelected) {
     html +=
-      ' <span class="product-selected-badge">RFQ</span>';
+  ' <span class="product-selected-badge">' +
+  escapeHtml(
+    langText("rfq_badge", "RFQ")
+  ) +
+  '</span>';
   }
 
   } else if (
@@ -2678,7 +2757,12 @@ if (value) {
 });
 
       html += '<td style="padding:8px;border:1px solid #ccc;text-align:center;">';
-      html += '<input type="text" class="inquiry-qty" placeholder="QTY" value="' +
+     html +=
+  '<input type="text" class="inquiry-qty" placeholder="' +
+  escapeAttr(
+    langText("qty_placeholder", "QTY")
+  ) +
+  '" value="' +
   escapeAttr(selectedQty) +
   '">';
 
@@ -2688,11 +2772,14 @@ html += '<button type="button" class="inquiry-small-btn' +
 
 html += 'data-type="' + escapeAttr(type) + '" ';
 html += 'data-key="' + escapeAttr(productKey) + '" ';
+html += 'data-in-cart="' + (rowSelected ? '1' : '0') + '" ';
 html += 'onclick="toggleOtherProductInquiryFromButton(this)">';
 
-html += rowSelected
-  ? 'DELETE RFQ'
-  : 'ADD TO RFQ';
+html += escapeHtml(
+  rowSelected
+    ? langText("btn_delete_rfq", "DELETE RFQ")
+    : langText("btn_add_to_rfq", "ADD TO RFQ")
+);
 
 
       html += '</button>';
@@ -2733,7 +2820,7 @@ function toggleOtherProductInquiryFromButton(btn){
 
   if (!row) return;
 
-  if (btn.innerText === "DELETE RFQ") {
+ if (btn.getAttribute("data-in-cart") === "1") {
     removeInquiryByProductKey(productKey);
     renderOtherProductTypeTables();
     return;
