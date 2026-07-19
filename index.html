@@ -969,8 +969,71 @@ function getVisitorId() {
   return visitorId;
 }
 
-const VISITOR_ID =
-getVisitorId();
+ const VISITOR_ID =
+  getVisitorId();
+
+// ========================================
+// Email Tracking → Visitor 關聯
+// ========================================
+
+async function linkEmailTracking() {
+
+  const emailTid =
+    new URLSearchParams(
+      window.location.search
+    ).get("email_tid");
+
+  if (!emailTid) {
+    return;
+  }
+
+  try {
+
+    const apiUrl =
+      "https://visitor-email-v2.lcdscreentek.workers.dev/email/link" +
+
+      "?tracking_id=" +
+      encodeURIComponent(emailTid) +
+
+      "&visitor_id=" +
+      encodeURIComponent(VISITOR_ID);
+
+    const response =
+      await fetch(
+        apiUrl,
+        {
+          method: "GET",
+          cache: "no-store"
+        }
+      );
+
+    const result =
+      await response.text();
+
+    if (!response.ok) {
+      throw new Error(
+        "HTTP " +
+        response.status +
+        " " +
+        result
+      );
+    }
+
+    console.log(
+      "Email tracking linked:",
+      result
+    );
+
+  } catch (err) {
+
+    console.log(
+      "Email tracking link failed:",
+      err
+    );
+
+  }
+} 
+  
 
 let currentWebId =
   Number(window.CURRENT_WEB_ID || 0);
@@ -1276,16 +1339,23 @@ renderOtherProductTypeTables();
     slider.innerHTML = '<div style="padding:20px;color:red;">Load banners failed: ' + err.message + '</div>';
   }
 }
+window.addEventListener(
+  "pageshow",
+  function () {
 
-window.addEventListener("pageshow", function () {
+    linkEmailTracking();
 
-  loadInquiryCart();
+    loadInquiryCart();
 
-  if (typeof updateInquiryRemark === "function") {
-    updateInquiryRemark();
+    if (
+      typeof updateInquiryRemark ===
+      "function"
+    ) {
+      updateInquiryRemark();
+    }
+
   }
-
-});
+);
 
 
 </script>
