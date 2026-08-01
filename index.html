@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -668,7 +668,6 @@ rel="stylesheet">
     </div>
   </main>
 
-
 <section id="brief1" class="anchor">
   <div class="container">
   </div>
@@ -678,8 +677,6 @@ rel="stylesheet">
   <div class="container">
   </div>
 </section>
-
- 
 
   <section id="products" class="anchor">
     <div class="container">
@@ -972,6 +969,25 @@ function getVisitorId() {
  const VISITOR_ID =
   getVisitorId();
 
+const ENTRY_REFERRER_KEY =
+  "TWSCREEN_ENTRY_REFERRER";
+
+if (
+  sessionStorage.getItem(
+    ENTRY_REFERRER_KEY
+  ) === null
+) {
+  sessionStorage.setItem(
+    ENTRY_REFERRER_KEY,
+    document.referrer || ""
+  );
+}
+
+const ENTRY_REFERRER =
+  sessionStorage.getItem(
+    ENTRY_REFERRER_KEY
+  ) || "";
+  
 // ========================================
 // Email Tracking → Visitor 關聯
 // ========================================
@@ -1079,27 +1095,122 @@ async function loadBuyerInfoFromServer() {
 
 let isTrustedEditor = false;
 
-function writeVisitorLog(eventType, data) {
+function writeVisitorLog(
+  eventType,
+  data = {}
+) {
   try {
+
     const email =
-      localStorage.getItem("buyer_email") || "";
+      localStorage.getItem(
+        "buyer_email"
+      ) || "";
+
+    const referrerUrl =
+      sessionStorage.getItem(
+        ENTRY_REFERRER_KEY
+      ) || "";
+
+    const params =
+      new URLSearchParams();
+
+    params.set(
+      "web_id",
+      String(
+        currentWebId || 0
+      )
+    );
+
+    params.set(
+      "visitor_id",
+      VISITOR_ID
+    );
+
+    params.set(
+      "event_type",
+      String(
+        eventType || ""
+      )
+    );
+
+    params.set(
+      "panel_id",
+      String(
+        data.id || ""
+      )
+    );
+
+    params.set(
+      "panel_model",
+      String(
+        data.panel_model || ""
+      )
+    );
+
+    params.set(
+      "email",
+      email
+    );
+
+    params.set(
+      "page_url",
+      location.href
+    );
+
+    params.set(
+      "referrer_url",
+      referrerUrl
+    );
 
     const url =
-      "https://rfq-log.lcdscreentek.workers.dev/visitor-log" +
-      "?web_id=" + encodeURIComponent(currentWebId || 0) +
-      "&visitor_id=" + encodeURIComponent(VISITOR_ID) +
-      "&event_type=" + encodeURIComponent(eventType) +
-      "&panel_id=" + encodeURIComponent(data.id || "") +
-      "&panel_model=" + encodeURIComponent(data.panel_model || "") +
-      "&email=" + encodeURIComponent(email) +
-      "&page_url=" + encodeURIComponent(location.href);
+      "https://rfq-log.lcdscreentek.workers.dev/visitor-log?" +
+      params.toString();
 
-    fetch(url).catch(function(err) {
-      console.log("visitor log failed", err);
-    });
+    fetch(
+      url,
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store"
+      }
+    )
+      .then(function(response) {
+
+        if (!response.ok) {
+          throw new Error(
+            "HTTP " +
+            response.status
+          );
+        }
+
+        return response.json();
+      })
+      .then(function(result) {
+
+        console.log(
+          "Visitor log result:",
+          result
+        );
+
+      })
+      .catch(function(err) {
+
+        console.log(
+          "visitor log failed",
+          err
+        );
+
+      });
 
   } catch (err) {
-    console.log("writeVisitorLog error", err);
+
+    console.log(
+      "writeVisitorLog error",
+      err
+    );
+
   }
 }
 
@@ -1319,7 +1430,7 @@ loadInquiryCart();
         slides[index].classList.remove("active");
         index = (index + 1) % slides.length;
         slides[index].classList.add("active");
-      }, 700);
+      }, 5000);
     }
 
     await loadWebCont();
